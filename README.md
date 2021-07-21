@@ -20,3 +20,6 @@ This topic name would then be matched by the settings in JAERO:
 
 ![image](https://user-images.githubusercontent.com/31091871/126470450-cf25d78e-f123-4878-8ab8-16693719cc22.png)
 
+The easiest way to start the SDR is by creating a bat or shell script to pass the ini file name argument, i.e. on windows:
+
+start SDRReceiver.exe -s ini/SDR_25E.ini
