@@ -14,18 +14,7 @@ zmq_address=tcp://*:6003
 
 Each VFO defined in the ini file should have it own Topic name as shown in the below ini file excerpt
 
-[vfos]
-size=33
-1\frequency=1545010000
-1\gain=10
-1\data_rate=600
-1\filter_audio=0
-
-2\frequency=1545029850
-2\gain=10
-2\data_rate=600
-2\filter_audio=0
-2\topic=VFO02
+![image](https://user-images.githubusercontent.com/31091871/126470644-0c8b4030-8096-4c58-80e9-549bec89e0db.png)
 
 This topic name would then be matched by the settings in JAERO:
 
