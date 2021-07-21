@@ -23,3 +23,7 @@ This topic name would then be matched by the settings in JAERO:
 The easiest way to start the SDR is by creating a bat or shell script to pass the ini file name argument, i.e. on windows:
 
 start SDRReceiver.exe -s ini/SDR_25E.ini
+
+In order to make this work I have re-used some of Jonti's excellent code from his JDSCA project for handling the RTL callback and data handling. I also used some gnuradio project code for FIR coeffecient calculations. 
+
+
