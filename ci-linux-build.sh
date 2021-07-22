@@ -100,6 +100,6 @@ Cheers,<br>
 ci-linux-build.sh
 EOT
 #compress
-cd ..
+
 tar -czvf ${PACKAGE_NAME}_${PACKAGE_VERSION%_*}-1_linux_$(uname -m).tar.gz SDRReceiver
 echo "done"
