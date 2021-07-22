@@ -10,7 +10,7 @@ set -e
 if [[ ! $(sudo echo 0) ]]; then exit; fi
 
 #install dependancies and build tools
-sudo apt-get install qt5-default cpputest build-essential qtmultimedia5-dev cmake libvorbis-dev libogg-dev libqt5multimedia5-plugins checkinstall libqcustomplot-dev libqt5svg5-dev libzmq3-dev rtl-sdr libusb -y
+sudo apt-get install qt5-default cpputest build-essential qtmultimedia5-dev cmake libvorbis-dev libogg-dev libqt5multimedia5-plugins checkinstall libqcustomplot-dev libqt5svg5-dev libzmq3-dev rtl-sdr libusb-dev -y
 
 #get script path
 SCRIPT=$(realpath $0)
