@@ -1,6 +1,14 @@
+
+DEFINES += SDR_VERSION=\\\"v1.0.0\\\"
+
 QT       += core gui network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
+
+TARGET = SDRReceiver
+TEMPLATE = app
+
+INSTALL_PATH = /opt/sdrreceiver
 
 CONFIG += c++11
 

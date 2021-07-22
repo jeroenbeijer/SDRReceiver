@@ -28,7 +28,7 @@ cd $SCRIPTPATH
 #needed for github actions
 git fetch --prune --unshallow --tags || true
 git status > /dev/null 2>&1
-PACKAGE_VERSION=$(git describe --tags --match 'v*' --dirty 2> /dev/null | tr -d v)
+PACKAGE_VERSION=1.0
 PACKAGE_NAME=SDRReceiver
 MAINTAINER=https://github.com/jeroenbeijer
 PACKAGE_SOURCE=https://github.com/jeroenbeijer/SDRReceiver
@@ -39,6 +39,8 @@ echo "PACKAGE_SOURCE="$PACKAGE_SOURCE
 
 qmake
 mingw32-make
+
+#package
 mkdir release/SDRReceiver
 cp release/SDRReceiver.exe release/SDRReceiver/
 cd release/SDRReceiver
@@ -81,5 +83,5 @@ Cheers,<br>
 ci-windows-build.sh
 EOT
 #compress
-cd ..
+
 zip -r ${PACKAGE_NAME}_${PACKAGE_VERSION%_*}-1_win_$(uname -m).zip SDRReceiver

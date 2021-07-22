@@ -43,7 +43,7 @@ jobs:
           name: sdrreceiver_windows_windows
           retention-days: 1
           path: |
-            release/*.zip
+            SDRReceiver/release/*.zip
       # upload linux artifacts    
       - name: Upload linux binary artifacts
         if: ${{ matrix.os == 'ubuntu-latest' }}
