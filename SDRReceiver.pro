@@ -82,15 +82,18 @@ CONFIG(debug, debug|release) {
 }
 
 
-win32: LIBS += -L$$PWD/../rtl-sdr/build/src -lrtlsdr
+win32 {
+#message("windows")
+LIBS += -lqcustomplot2 -llibzmq -llibrtlsdr.dll 
+} else {
+#message("not windows")
+LIBS += -lqcustomplot -lzmq -lrtlsdr
+}
 
+win32: LIBS += -L$$PWD/../rtl-sdr/build/src -llibrtlsdr.dll 
 INCLUDEPATH += $$PWD/../rtl-sdr/include
 DEPENDPATH += $$PWD/../rtl-sdr/build/src
 
 
 
-win32: LIBS += -L$$PWD/../libzmq/lib/ -llibzmq-v120-mt-4_0_4
-
-INCLUDEPATH += $$PWD/../libzmq/include
-DEPENDPATH += $$PWD/../libzmq/include
 

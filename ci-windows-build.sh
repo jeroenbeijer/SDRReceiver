@@ -22,7 +22,6 @@ mkdir build && cd build
 cmake -G "MinGW Makefiles" -DCMAKE_INSTALL_PREFIX:PATH=/mingw64/ ..
 mingw32-make
 mingw32-make DESTDIR=/../ install
-cp rtlsdr.dll /mingw64/bin/
 
 #SDRReceiver
 cd $SCRIPTPATH
