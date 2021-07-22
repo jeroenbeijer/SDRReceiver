@@ -73,24 +73,24 @@ cd ..
 
 #package
 mkdir SDRReceiver/bin
-mkdir SDRReceiver/bin/SDRReceiver
-cp SDRReceiver/*.deb SDRReceiver/bin/SDRReceiver
+mkdir SDRReceiver/bin/sdreceiver
+cp SDRReceiver/*.deb SDRReceiver/bin/sdreceiver
 cd SDRReceiver/bin
-cat <<EOT > SDRReceiver/install.sh
+cat <<EOT > sdreceiver/install.sh
 #!/bin/bash
 #installs built packages
 sudo apt install ./*.deb
 sudo ldconfig
 EOT
-chmod +x SDRReceiver/install.sh
-cat <<EOT > SDRReceiver/uninstall.sh
+chmod +x sdreceiver/install.sh
+cat <<EOT > sdreceiver/uninstall.sh
 #!/bin/bash
 #removes built packages
 sudo dpkg --remove libacars-dev libcorrect-dev libaeroambe-dev SDRReceiver libzmq3-dev libusb-dev librtlsdr-dev
 sudo ldconfig
 EOT
-chmod +x SDRReceiver/uninstall.sh
-cat <<EOT > SDRReceiver/readme.md
+chmod +x sdreceiver/uninstall.sh
+cat <<EOT > sdreceiver/readme.md
 # SDRReceiver ${PACKAGE_VERSION}
 
 ### OS: $(lsb_release -d | cut -f 2)
@@ -101,5 +101,5 @@ ci-linux-build.sh
 EOT
 #compress
 
-tar -czvf ${PACKAGE_NAME}_${PACKAGE_VERSION%_*}-1_linux_$(uname -m).tar.gz SDRReceiver
+tar -czvf ${PACKAGE_NAME}_${PACKAGE_VERSION%_*}-1_linux_$(uname -m).tar.gz sdreceiver
 echo "done"
