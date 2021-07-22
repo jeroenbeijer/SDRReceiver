@@ -51,7 +51,7 @@ public slots:
 
 private:
 
-    bool sendCommand(byte cmd, char* val);
+    bool sendCommand(char cmd, char* val);
     bool tcp_active;
     std::vector<cpx_typef> samples;
     int count;

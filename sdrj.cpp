@@ -165,7 +165,7 @@ void sdrj::readyRead()
     }
 }
 
-bool sdrj::sendCommand(byte cmd, char *val)
+bool sdrj::sendCommand(char cmd, char *val)
 {
 
     QByteArray cmdBuff;
