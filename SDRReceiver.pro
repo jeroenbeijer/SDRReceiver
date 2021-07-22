@@ -66,33 +66,15 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 QMAKE_CXXFLAGS_RELEASE -= -O2
 QMAKE_CXXFLAGS_RELEASE += -Ofast
 
-#define where we store everything so when using the command line we don't make the main directory messy.
-CONFIG(debug, debug|release) {
-    DESTDIR = $$PWD/debug
-    OBJECTS_DIR = $$PWD/tmp/debug/stuff
-    MOC_DIR = $$PWD/tmp/debug/stuff
-    UI_DIR = $$PWD/tmp/debug/stuff
-    RCC_DIR = $$PWD/tmp/debug/stuff
-} else {
-    DESTDIR = $$PWD/release
-    OBJECTS_DIR = $$PWD/tmp/release/stuff
-    MOC_DIR = $$PWD/tmp/release/stuff
-    UI_DIR = $$PWD/tmp/release/stuff
-    RCC_DIR = $$PWD/tmp/release/stuff
-}
-
 
 win32 {
 #message("windows")
-LIBS += -lqcustomplot2 -llibzmq -llibrtlsdr.dll 
+LIBS += -llibzmq -llibrtlsdr.dll 
 } else {
 #message("not windows")
-LIBS += -lqcustomplot -lzmq -lrtlsdr
+LIBS += -lzmq -lrtlsdr
 }
 
-win32: LIBS += -L$$PWD/../rtl-sdr/build/src -llibrtlsdr.dll 
-INCLUDEPATH += $$PWD/../rtl-sdr/include
-DEPENDPATH += $$PWD/../rtl-sdr/build/src
 
 
 
