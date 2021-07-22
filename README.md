@@ -37,17 +37,23 @@ The center frequency is chosen so that both the lower speed data channels and hi
 center_frequency=1545600000
 
 Other ini file keys:
-# set the tuner gain, 496 is the highest for R820T2 devices
+set the tuner gain, 496 is the highest for R820T2 devices
+
 tuner_gain=496
-# remove the annoying spike in the center of the spectrum
+
+remove the annoying spike in the center of the spectrum
 correct_dc_bias=1
-# when changing dongles there may be a slight freqency difference. Use this to tune ALL VFO's up or down by a number of Hz. Use positive values to tune higher, negative values # # to tune lower
+
+when changing dongles there may be a slight freqency difference. Use this to tune ALL VFO's up or down by a number of Hz. Use positive values to tune higher, negative values # # to tune lower
+
 mix_offset=0
 
-# You should be able to connect to remote RTL that is running via rtl_tcp, it will show in the device drop down when enabled
-#remote_rtl=127.0.0.1:1234
+You should be able to connect to remote RTL that is running via rtl_tcp, it will show in the device drop down when enabled
 
-# These are the main VFO's. There is typically no need to change these unless perhaps while setting up a new C Band ini file. The SDR should work for C Band as well but the FFT # is quite slow so it is probabaly a good idea to determine the exact frequencies to use via other means.
+remote_rtl=127.0.0.1:1234
+
+These are the main VFO's. There is typically no need to change these unless perhaps while setting up a new C Band ini file. The SDR should work for C Band as well but the FFT # is quite slow so it is probabaly a good idea to determine the exact frequencies to use via other means.
+
 [main_vfos]
 size=2
 1\frequency=1545116000
