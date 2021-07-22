@@ -52,11 +52,9 @@ You should be able to connect to remote RTL that is running via rtl_tcp, it will
 
 remote_rtl=127.0.0.1:1234
 
-These are the main VFO's. There is typically no need to change these unless perhaps while setting up a new C Band ini file. The SDR should work for C Band as well but the FFT # is quite slow so it is probabaly a good idea to determine the exact frequencies to use via other means.
+The main VFO's are shown in the image above. There is typically no need to change these unless perhaps while setting up a new C Band ini file. The SDR should work for C Band as well but the FFT # is quite slow so it is probabaly a good idea to determine the exact frequencies to use via other means.
 
-[main_vfos]
-size=2
-1\frequency=1545116000
-1\out_rate=384000
-2\frequency=1546096000
-2\out_rate=192000
+The decoding results in jaero should be similar to what one would get from other SDR's but it becomes possible to run jaero almost free of CRC errors even at high CPU loads.
+
+
+![image](https://user-images.githubusercontent.com/31091871/126675321-a9fb3c35-ec5b-4b5b-972d-512ac160d65f.png)
