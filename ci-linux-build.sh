@@ -22,7 +22,7 @@ cd $SCRIPTPATH
 git fetch --prune --unshallow --tags || true
 git status > /dev/null 2>&1
 PACKAGE_VERSION=1.0
-PACKAGE_NAME=sdrreceiver
+PACKAGE_NAME=SDRReceiver
 MAINTAINER=https://github.com/jeroenbeijer
 PACKAGE_SOURCE=https://github.com/jeroenbeijer/SDRReceiver
 echo "PACKAGE_NAME="$PACKAGE_NAME
@@ -31,6 +31,7 @@ echo "MAINTAINER="$MAINTAINER
 echo "PACKAGE_SOURCE="$PACKAGE_SOURCE
 
 #build for release
+cd SDRReceiver
 qmake CONFIG-="CI"
 make
 make INSTALL_ROOT=$PWD/${PACKAGE_NAME}_${PACKAGE_VERSION%_*}-1 install
@@ -57,39 +58,39 @@ mkdir -p ${PACKAGE_NAME}_${PACKAGE_VERSION%_*}-1/DEBIAN
 cp control ${PACKAGE_NAME}_${PACKAGE_VERSION%_*}-1/DEBIAN
 #add path command
 mkdir -p ${PACKAGE_NAME}_${PACKAGE_VERSION%_*}-1/usr/local/bin
-cat <<EOT > ${PACKAGE_NAME}_${PACKAGE_VERSION%_*}-1/usr/local/bin/sdrreceiver
+cat <<EOT > ${PACKAGE_NAME}_${PACKAGE_VERSION%_*}-1/usr/local/bin/SDRReceiver
 #!/bin/bash
-/opt/sdrreceiver/sdrreceiver
+/opt/SDRReceiver/SDRReceiver
 EOT
-chmod +x ${PACKAGE_NAME}_${PACKAGE_VERSION%_*}-1/usr/local/bin/sdrreceiver
+chmod +x ${PACKAGE_NAME}_${PACKAGE_VERSION%_*}-1/usr/local/bin/SDRReceiver
 
 
 #build and install package
 dpkg-deb --build ${PACKAGE_NAME}_${PACKAGE_VERSION%_*}-1
 sudo apt install ./${PACKAGE_NAME}*.deb -y
 sudo ldconfig
-cd ../..
+cd ..
 
 #package
-mkdir sdrreceiver/bin
-mkdir sdrreceiver/bin/sdrreceiver
-cp sdrreceiver/sdrreceiver/*.deb sdrreceiver/bin/sdrreceiver
-cd sdrreceiver/bin
-cat <<EOT > sdrreceiver/install.sh
+mkdir SDRReceiver/bin
+mkdir SDRReceiver/bin/SDRReceiver
+cp SDRReceiver/SDRReceiver/*.deb SDRReceiver/bin/SDRReceiver
+cd SDRReceiver/bin
+cat <<EOT > SDRReceiver/install.sh
 #!/bin/bash
 #installs built packages
 sudo apt install ./*.deb
 sudo ldconfig
 EOT
-chmod +x sdrreceiver/install.sh
-cat <<EOT > sdrreceiver/uninstall.sh
+chmod +x SDRReceiver/install.sh
+cat <<EOT > SDRReceiver/uninstall.sh
 #!/bin/bash
 #removes built packages
-sudo dpkg --remove libacars-dev libcorrect-dev libaeroambe-dev sdrreceiver libusb rtl-sdr
+sudo dpkg --remove libacars-dev libcorrect-dev libaeroambe-dev SDRReceiver libzmq3-dev libusb-dev librtlsdr-dev
 sudo ldconfig
 EOT
-chmod +x sdrreceiver/uninstall.sh
-cat <<EOT > sdrreceiver/readme.md
+chmod +x SDRReceiver/uninstall.sh
+cat <<EOT > SDRReceiver/readme.md
 # SDRReceiver ${PACKAGE_VERSION}
 
 ### OS: $(lsb_release -d | cut -f 2)
@@ -99,5 +100,5 @@ Cheers,<br>
 ci-linux-build.sh
 EOT
 #compress
-tar -czvf ${PACKAGE_NAME}_${PACKAGE_VERSION%_*}-1_linux_$(uname -m).tar.gz sdrreceiver
+tar -czvf ${PACKAGE_NAME}_${PACKAGE_VERSION%_*}-1_linux_$(uname -m).tar.gz SDRReceiver
 echo "done"
