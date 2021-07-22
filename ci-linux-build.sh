@@ -31,7 +31,7 @@ echo "MAINTAINER="$MAINTAINER
 echo "PACKAGE_SOURCE="$PACKAGE_SOURCE
 
 #build for release
-cd SDRReceiver
+#cd SDRReceiver
 qmake CONFIG-="CI"
 make
 make INSTALL_ROOT=$PWD/${PACKAGE_NAME}_${PACKAGE_VERSION%_*}-1 install
