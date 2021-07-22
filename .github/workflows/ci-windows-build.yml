@@ -33,6 +33,7 @@ jobs:
         if: ${{ matrix.os == 'ubuntu-latest' }}
         run: |
           echo 'Running in bash!'
+          chmod +x ./SDRReceiver/ci-linux-build.sh
           ./SDRReceiver/ci-linux-build.sh          
       # upload windows artifacts    
       - name: Upload windows binary artifacts
