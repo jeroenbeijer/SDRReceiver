@@ -29,14 +29,14 @@ cd $SCRIPTPATH
 git fetch --prune --unshallow --tags || true
 git status > /dev/null 2>&1
 PACKAGE_VERSION=$(git describe --tags --match 'v*' --dirty 2> /dev/null | tr -d v)
-PACKAGE_NAME=jaero
+PACKAGE_NAME=SDRReceiver
 MAINTAINER=https://github.com/jeroenbeijer
 PACKAGE_SOURCE=https://github.com/jeroenbeijer/SDRReceiver
 echo "PACKAGE_NAME="$PACKAGE_NAME
 echo "PACKAGE_VERSION="$PACKAGE_VERSION
 echo "MAINTAINER="$MAINTAINER
 echo "PACKAGE_SOURCE="$PACKAGE_SOURCE
-cd SDRReceiver
+
 qmake
 mingw32-make
 mkdir release/SDRReceiver
