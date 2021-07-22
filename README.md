@@ -26,4 +26,31 @@ start SDRReceiver.exe -s ini/SDR_25E.ini
 
 In order to make this work I have re-used some of Jonti's excellent code from his JDSCA project for handling the RTL callback and data handling. I also used some gnuradio project code for FIR coeffecient calculations. 
 
+The main sample rate for the device is set as follows:
 
+sample_rate=1536000
+
+However this should probably not be changed. Except for the older I3 satellite at 54W all channels fit nicely with a 1.536.000 sample rate and it can be decimated down to 48Khz entirely with half band FIR filters. In order to cover the data channels and voice channels around 1546.8 for 54W it is also possible to run at 1.920.000 but obviously this takes a little more CPU and has no obvious benefit for the I4 satellites. 
+
+The center frequency is chosen so that both the lower speed data channels and higher speed channels as well voice channels are covered:
+
+center_frequency=1545600000
+
+Other ini file keys:
+# set the tuner gain, 496 is the highest for R820T2 devices
+tuner_gain=496
+# remove the annoying spike in the center of the spectrum
+correct_dc_bias=1
+# when changing dongles there may be a slight freqency difference. Use this to tune ALL VFO's up or down by a number of Hz. Use positive values to tune higher, negative values # # to tune lower
+mix_offset=0
+
+# You should be able to connect to remote RTL that is running via rtl_tcp, it will show in the device drop down when enabled
+#remote_rtl=127.0.0.1:1234
+
+# These are the main VFO's. There is typically no need to change these unless perhaps while setting up a new C Band ini file. The SDR should work for C Band as well but the FFT # is quite slow so it is probabaly a good idea to determine the exact frequencies to use via other means.
+[main_vfos]
+size=2
+1\frequency=1545116000
+1\out_rate=384000
+2\frequency=1546096000
+2\out_rate=192000
