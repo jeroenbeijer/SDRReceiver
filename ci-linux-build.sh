@@ -74,7 +74,7 @@ cd ..
 #package
 mkdir SDRReceiver/bin
 mkdir SDRReceiver/bin/SDRReceiver
-cp SDRReceiver/SDRReceiver/*.deb SDRReceiver/bin/SDRReceiver
+cp SDRReceiver/SDRReceiver/SDRReceiver/*.deb SDRReceiver/bin/SDRReceiver
 cd SDRReceiver/bin
 cat <<EOT > SDRReceiver/install.sh
 #!/bin/bash
