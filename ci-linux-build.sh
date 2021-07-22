@@ -29,12 +29,7 @@ echo "PACKAGE_NAME="$PACKAGE_NAME
 echo "PACKAGE_VERSION="$PACKAGE_VERSION
 echo "MAINTAINER="$MAINTAINER
 echo "PACKAGE_SOURCE="$PACKAGE_SOURCE
-cd SDRReceiver
-#run unit tests
-qmake CONFIG+="CI"
-make
-./SDRReceiver -v
-rm SDRReceiver
+
 #build for release
 qmake CONFIG-="CI"
 make
@@ -42,6 +37,7 @@ make INSTALL_ROOT=$PWD/${PACKAGE_NAME}_${PACKAGE_VERSION%_*}-1 install
 SDR_INSTALL_PATH=$(cat SDRReceiver.pro | sed -n -e 's/^INSTALL_PATH[|( ).]= //p')
 SDR_INSTALL_PATH=${SDR_INSTALL_PATH//$'\r'/}
 echo 'SDR_INSTALL_PATH='${SDR_INSTALL_PATH}
+
 #add control
 cat <<EOT > control
 Package: ${PACKAGE_NAME}
