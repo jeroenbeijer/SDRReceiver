@@ -69,4 +69,4 @@ jobs:
           title: "Development Build"
           files: |
             sdrreceiver_linux/*.tar.gz
-           sdrrece_windows/*.zip
+            sdrreceiver_windows/*.zip
