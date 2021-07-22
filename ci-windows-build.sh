@@ -7,13 +7,22 @@
 #fail on first error
 set -e
 
-pacman -S --needed --noconfirm git mingw-w64-x86_64-toolchain autoconf libtool mingw-w64-x86_64-cpputest mingw-w64-x86_64-qt5 mingw-w64-x86_64-cmake mingw-w64-x86_64-libvorbis zip p7zip unzip mingw-w64-x86_64-zeromq libusb rtl-sdr
+pacman -S --needed --noconfirm git mingw-w64-x86_64-toolchain autoconf libtool mingw-w64-x86_64-cpputest mingw-w64-x86_64-qt5 mingw-w64-x86_64-cmake mingw-w64-x86_64-libvorbis zip p7zip unzip mingw-w64-x86_64-zeromq mingw-w64-x86_64-libusb
 
 #get script path
 SCRIPT=$(realpath $0)
 SCRIPTPATH=$(dirname $SCRIPT)
 cd $SCRIPTPATH/..
 
+
+#rtsdr
+git clone https://github.com/osmocom/rtl-sdr
+cd rtl-sdr
+mkdir build && cd build
+cmake -G "MinGW Makefiles" -DCMAKE_INSTALL_PREFIX:PATH=/mingw64/ ..
+mingw32-make
+mingw32-make DESTDIR=/../ install
+cp rtlsdr.dll /mingw64/bin/
 
 #SDRReceiver
 cd $SCRIPTPATH
