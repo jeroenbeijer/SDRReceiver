@@ -52,7 +52,7 @@ jobs:
           name: sdrreceiver_linux
           retention-days: 1
           path: |
-            sdrreceiver/bin/*.tar.gz
+            SDRReceiver/bin/*.tar.gz
   release:
     needs: build
     runs-on: ubuntu-latest
