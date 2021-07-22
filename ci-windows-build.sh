@@ -83,5 +83,5 @@ Cheers,<br>
 ci-windows-build.sh
 EOT
 #compress
-cd..
+cd ..
 zip -r ${PACKAGE_NAME}_${PACKAGE_VERSION%_*}-1_win_$(uname -m).zip SDRReceiver
