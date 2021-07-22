@@ -41,7 +41,7 @@ qmake
 mingw32-make
 
 #package
-mkdir release/SDRReceiver
+mkdir release/sdrreceiver
 cp release/SDRReceiver.exe release/SDRReceiver/
 cd release/SDRReceiver
 windeployqt.exe --force SDRReceiver.exe
@@ -83,5 +83,5 @@ Cheers,<br>
 ci-windows-build.sh
 EOT
 #compress
-
+cd..
 zip -r ${PACKAGE_NAME}_${PACKAGE_VERSION%_*}-1_win_$(uname -m).zip SDRReceiver
