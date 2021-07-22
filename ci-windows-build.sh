@@ -70,6 +70,7 @@ cp /mingw64/bin/libiconv-2.dll $PWD
 cp /mingw64/bin/libzmq.dll $PWD
 cp /mingw64/bin/librtlsdr.dll $PWD
 cp /mingw64/bin/libsodium-23.dll $PWD
+cp /mingw64/bin/libusb-1.0.dll $PWD
 #add readme
 cat <<EOT > readme.md
 # JAERO ${PACKAGE_VERSION}
