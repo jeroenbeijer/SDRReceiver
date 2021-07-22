@@ -7,7 +7,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest]
+        os: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
@@ -43,7 +43,7 @@ jobs:
           name: sdrrece_windows_windows
           retention-days: 1
           path: |
-            SDRReceiver/SDRReceiver/release/*.zip
+            /SDRReceiver/release/*.zip
       # upload linux artifacts    
       - name: Upload linux binary artifacts
         if: ${{ matrix.os == 'ubuntu-latest' }}
