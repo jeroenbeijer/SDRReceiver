@@ -40,10 +40,10 @@ jobs:
         if: ${{ matrix.os == 'windows-latest' }}
         uses: actions/upload-artifact@v2
         with:
-          name: sdrrece_windows_windows
+          name: sdrreceiver_windows_windows
           retention-days: 1
           path: |
-            /SDRReceiver/release/*.zip
+            release/*.zip
       # upload linux artifacts    
       - name: Upload linux binary artifacts
         if: ${{ matrix.os == 'ubuntu-latest' }}
@@ -52,7 +52,7 @@ jobs:
           name: sdrreceiver_linux
           retention-days: 1
           path: |
-            SDRReceiver/bin/*.tar.gz
+            bin/*.tar.gz
   release:
     needs: build
     runs-on: ubuntu-latest
