@@ -77,7 +77,6 @@ private:
     FIR * fir_decQ;
 
     int decimateCount;
-    uint32_t outputRate;
 
     //WaveTable * mix_bfo;
     Oscillator * osc_bfo;

@@ -13,7 +13,7 @@ public:
     void setAddress(QString address);
     void setBind(bool b = false);
     void setTopic(QString topic);
-    void publish(unsigned char *buf, uint32_t len, QString topic, uint32_t sampleRate);
+    void publish(unsigned char *buf, uint32_t len, QString topic);
     bool connected;
 
 

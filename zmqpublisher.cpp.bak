@@ -69,17 +69,13 @@ void ZmqPublisher::setBind(bool b)
     bind = b;
 }
 
-void ZmqPublisher::publish(unsigned char *buf, uint32_t len, QString topic, uint32_t sampleRate){
+void ZmqPublisher::publish(unsigned char *buf, uint32_t len, QString topic){
 
     std::string topic_text = topic.toUtf8().constData();
-    unsigned char rate[4];
-    memcpy(rate, &sampleRate, 4);
 
-    if(len != 0)
-    {
+    if(len != 0){
 
         zmq_send(publisher, topic_text.c_str(), 5, ZMQ_SNDMORE);
-        zmq_send(publisher, rate, 4, ZMQ_SNDMORE );
         zmq_send(publisher, buf, len, 0 );
     }
 

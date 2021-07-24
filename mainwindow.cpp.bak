@@ -42,13 +42,11 @@ MainWindow::MainWindow(QWidget *parent)
     int mix_offset = settings.value("mix_offset").toInt();
 
 
-    if(gain > 0)
-    {
+    if(gain > 0){
 
         tuner_gain=gain;
     }
-    if(remote_gain_idx > 0)
-    {
+    if(remote_gain_idx > 0){
 
         tuner_gain_idx=remote_gain_idx;
     }

@@ -87,8 +87,7 @@ void vfo::init(int samplesPerBuffer, bool bind)
 
 
     }
-    outputRate = Fs/(pow(2,decimateCount));
-    osc_bfo = new Oscillator(outputRate, offsetbw);
+    osc_bfo = new Oscillator(Fs/(pow(2,decimateCount)), offsetbw);
 
 
     if(filterbw >0)
@@ -417,23 +416,23 @@ void vfo::transmitData(){
     {
         if(zmqBind)
         {
-          vfo::bind_publisher.publish((unsigned char*)transmit_usb.data(), transmit_usb.size()*sizeof(short), zmqTopic, outputRate);
+          vfo::bind_publisher.publish((unsigned char*)transmit_usb.data(), transmit_usb.size()*sizeof(short), zmqTopic);
         }
         else
         {
-            connect_publisher.publish((unsigned char*)transmit_usb.data(), transmit_usb.size()*sizeof(short), zmqTopic, outputRate);
+            connect_publisher.publish((unsigned char*)transmit_usb.data(), transmit_usb.size()*sizeof(short), zmqTopic);
         }
     }
-    else if(zmqTopic.length()>0)
+    else
     {
 
         if(zmqBind)
         {
-           bind_publisher.publish((unsigned char*)transmit_iq.data(), transmit_iq.size()*sizeof(char), zmqTopic, outputRate);
+           bind_publisher.publish((unsigned char*)transmit_iq.data(), transmit_iq.size()*sizeof(char), zmqTopic);
         }
         else
         {
-            connect_publisher.publish((unsigned char*)transmit_iq.data(), transmit_iq.size()*sizeof(char), zmqTopic,outputRate);
+            connect_publisher.publish((unsigned char*)transmit_iq.data(), transmit_iq.size()*sizeof(char), zmqTopic);
 
         }
     }
