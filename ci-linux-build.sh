@@ -60,7 +60,7 @@ cp control ${PACKAGE_NAME}_${PACKAGE_VERSION%_*}-1/DEBIAN
 mkdir -p ${PACKAGE_NAME}_${PACKAGE_VERSION%_*}-1/usr/local/bin
 cat <<EOT > ${PACKAGE_NAME}_${PACKAGE_VERSION%_*}-1/usr/local/bin/SDRReceiver
 #!/bin/bash
-/opt/SDRReceiver/SDRReceiver
+/opt/SDRReceiver/bin/SDRReceiver
 EOT
 chmod +x ${PACKAGE_NAME}_${PACKAGE_VERSION%_*}-1/usr/local/bin/SDRReceiver
 
