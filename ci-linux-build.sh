@@ -95,24 +95,24 @@ cd ..
 
 #package
 mkdir SDRReceiver/bin
-mkdir SDRReceiver/bin/sdreceiver
-cp SDRReceiver/*.deb SDRReceiver/bin/sdreceiver
+mkdir SDRReceiver/bin/SDRReceiver
+cp SDRReceiver/*.deb SDRReceiver/bin/SDRReceiver
 cd SDRReceiver/bin
-cat <<EOT > sdreceiver/install.sh
+cat <<EOT > SDRReceiver/install.sh
 #!/bin/bash
 #installs built packages
 sudo apt install ./*.deb
 sudo ldconfig
 EOT
-chmod +x sdreceiver/install.sh
-cat <<EOT > sdreceiver/uninstall.sh
+chmod +x SDRReceiver/install.sh
+cat <<EOT > SDRReceiver/uninstall.sh
 #!/bin/bash
 #removes built packages
 sudo dpkg --remove libacars-dev libcorrect-dev libaeroambe-dev SDRReceiver libzmq3-dev libusb-dev librtlsdr-dev
 sudo ldconfig
 EOT
-chmod +x sdreceiver/uninstall.sh
-cat <<EOT > sdreceiver/readme.md
+chmod +x SDRReceiver/uninstall.sh
+cat <<EOT > SDRReceiver/readme.md
 # SDRReceiver ${PACKAGE_VERSION}
 
 ### OS: $(lsb_release -d | cut -f 2)
