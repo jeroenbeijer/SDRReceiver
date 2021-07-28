@@ -43,7 +43,7 @@ cd $SCRIPTPATH
 #needed for github actions
 git fetch --prune --unshallow --tags || true
 git status > /dev/null 2>&1
-PACKAGE_VERSION=1.0
+PACKAGE_VERSION=$(git describe --tags --match 'v*' --dirty 2> /dev/null | tr -d v)
 PACKAGE_NAME=SDRReceiver
 MAINTAINER=https://github.com/jeroenbeijer
 PACKAGE_SOURCE=https://github.com/jeroenbeijer/SDRReceiver
@@ -123,5 +123,5 @@ ci-linux-build.sh
 EOT
 #compress
 
-tar -czvf ${PACKAGE_NAME}_${PACKAGE_VERSION%_*}-1_linux_$(uname -m).tar.gz sdreceiver
+tar -czvf ${PACKAGE_NAME}_${PACKAGE_VERSION%_*}-1_linux_$(uname -m).tar.gz SDRReceiver
 echo "done"
