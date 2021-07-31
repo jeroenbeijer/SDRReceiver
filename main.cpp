@@ -23,6 +23,7 @@ int main(int argc, char *argv[])
     QCommandLineOption settingsnameoption(QStringList() << "s" << "settings-filename",QApplication::translate("main", "Run with setting file name <file name>."),QApplication::translate("main", "name"));
     settingsnameoption.setDefaultValue("");
     cmdparser.addOption(settingsnameoption);
+    cmdparser.process(a);
 
     if(a.arguments().size()<=1)
     {
