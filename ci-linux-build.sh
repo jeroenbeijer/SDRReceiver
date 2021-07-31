@@ -82,14 +82,13 @@ cp control ${PACKAGE_NAME}_${PACKAGE_VERSION%_*}-1/DEBIAN
 mkdir -p ${PACKAGE_NAME}_${PACKAGE_VERSION%_*}-1/usr/local/bin
 cat <<EOT > ${PACKAGE_NAME}_${PACKAGE_VERSION%_*}-1/usr/local/bin/SDRReceiver
 #!/bin/bash
-/opt/SDRReceiver/bin/SDRReceiver
+/opt/SDRReceiver/bin/SDRReceiver "\$@"
 EOT
 chmod +x ${PACKAGE_NAME}_${PACKAGE_VERSION%_*}-1/usr/local/bin/SDRReceiver
 
-
 #build and install package
 dpkg-deb --build ${PACKAGE_NAME}_${PACKAGE_VERSION%_*}-1
-sudo apt install ./${PACKAGE_NAME}*.deb -y
+sudo apt install --reinstall ./${PACKAGE_NAME}*.deb -y
 sudo ldconfig
 cd ..
 
