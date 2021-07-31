@@ -4,7 +4,7 @@ In addition, the aim of the project is to run at low CPU usage without any bells
 
 All settings are made in an ini file. A few examples ini files are included in the project. Further details on the options in the ini file are to follow but be very careful when editing the file, any mistakes may cause the program not to run correctly. 
 
-Note that this SDR requires a modified JAERO, see the forked JAERO project. Hopefully this will be merged into Jonti's version and releases.
+Note that this SDR requires a JAERO instance of version 1.0.4.13 or higher which has the ZeroMQ audio source options included.
 
 ![image](https://user-images.githubusercontent.com/31091871/126459963-0726ea9d-3d03-40b8-ae90-45676c3c21b1.png)
 
@@ -53,6 +53,13 @@ You should be able to connect to remote RTL that is running via rtl_tcp, it will
 remote_rtl=127.0.0.1:1234
 
 The main VFO's are shown in the image above. There is typically no need to change these unless perhaps while setting up a new C Band ini file. The SDR should work for C Band as well but the FFT # is quite slow so it is probabaly a good idea to determine the exact frequencies to use via other means.
+
+The SDR can be autostarted and with the following ini keys:
+
+auto_start=1
+auto_start_tuner_idx=0
+
+The latter key being the zero based index of the RTL device to be started as shown in the device dropdown
 
 The decoding results in jaero should be similar to what one would get from other SDR's but it becomes possible to run jaero almost free of CRC errors even at high CPU loads.
 
