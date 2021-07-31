@@ -2,6 +2,7 @@
 #include "ui_mainwindow.h"
 #include <qsettings.h>
 #include <iostream>
+#include <QFileInfo>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -13,17 +14,26 @@ MainWindow::MainWindow(QWidget *parent)
     bool dc = false;
     usb = false;
 
+    QFileInfo fileinfo(settings_filename);
+    if(!fileinfo.exists()||!fileinfo.isFile())
+    {
+        QMessageBox msgBox;
+        msgBox.setText("Given settings ini file doesn't exist");
+        msgBox.exec();
+        exit(1);
+    }
+
     QSettings settings(settings_filename, QSettings::IniFormat);
 
     Fs = settings.value("sample_rate").toInt();
 
     if(Fs == 0)
     {
-      QMessageBox msgBox;
-      msgBox.setText("sample_rate ini file key not found or equal to zero, check ini file name and key values");
-      msgBox.exec();
-      exit(1);
-   }
+        QMessageBox msgBox;
+        msgBox.setText("sample_rate ini file key not found or equal to zero, check ini file name and key values");
+        msgBox.exec();
+        exit(1);
+    }
 
     QStringList vfo_str;
 
@@ -180,11 +190,11 @@ MainWindow::MainWindow(QWidget *parent)
 
         if(main_vfo_out_rate!=Fs)
         {
-           VFOsub[main_idx].push_back(pVFO);
+            VFOsub[main_idx].push_back(pVFO);
         }
         else
         {
-           VFOmain.push_back(pVFO);
+            VFOmain.push_back(pVFO);
         }
 
         connect(pVFO, SIGNAL(fftData(const std::vector<cpx_typef>&)), this, SLOT(fftHandlerSlot(const std::vector<cpx_typef>&)));
@@ -394,10 +404,10 @@ void MainWindow::fftHandlerSlot(const std::vector<cpx_typef> &data)
 void MainWindow::on_stopSDR_clicked()
 {
 
-   radio->StopAndCloseRtl();
+    radio->StopAndCloseRtl();
 
-   ui->startSDR->setEnabled(true);
-   ui->stopSDR->setEnabled(false);
+    ui->startSDR->setEnabled(true);
+    ui->stopSDR->setEnabled(false);
 
 
 }
@@ -469,7 +479,7 @@ void MainWindow::on_comboVFO_currentIndexChanged(const QString &arg1)
     {
         usb = false;
         ui->spectrum->xAxis->setTickLabels(true);
-       ui->spectrum->xAxis->setRange(0,Fs);
+        ui->spectrum->xAxis->setRange(0,Fs);
     }
 
 
@@ -482,13 +492,13 @@ void MainWindow::on_spinBox_valueChanged(int arg1)
     if(radio != 0 && arg1 != center_frequency)
     {
 
-      int result =  radio->setCenterFreq(arg1);
+        int result =  radio->setCenterFreq(arg1);
 
-      if(result == 0)
-      {
-        center_frequency = arg1;
-      }
-   }
+        if(result == 0)
+        {
+            center_frequency = arg1;
+        }
+    }
 
 }
 

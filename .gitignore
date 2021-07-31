@@ -32,8 +32,16 @@ qrc_*.cpp
 Thumbs.db
 *.res
 *.rc
-/.qmake.cache
-/.qmake.stash
+.qmake.cache
+.qmake.stash
+
+#ignore build directories and artifacts
+/SDRReceiver_*/
+/*.deb
+/bin/
+/control
+moc_*.h
+/SDRReceiver
 
 # qtcreator generated files
 *.pro.user*
