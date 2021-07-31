@@ -23,6 +23,12 @@ int main(int argc, char *argv[])
     cmdparser.addOption(settingsnameoption);
 
     cmdparser.process(a);
+    
+    if(a.arguments().size()<=1)
+    {
+        fprintf(stderr, "%s\n", qPrintable(QCoreApplication::translate("main", "Error: Must specify an argument.")));
+        cmdparser.showHelp(1);
+    }
 
     MainWindow::settings_filename=cmdparser.value(settingsnameoption);
 
