@@ -57,6 +57,7 @@ The main VFO's are shown in the image above. There is typically no need to chang
 The SDR can be autostarted and with the following ini keys:
 
 auto_start=1
+
 auto_start_tuner_idx=0
 
 The latter key being the zero based index of the RTL device to be started as shown in the device dropdown
