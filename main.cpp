@@ -12,7 +12,7 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
 
     QApplication::setApplicationName("SDRReceiver");
-    QApplication::setApplicationVersion("0.1");
+    QApplication::setApplicationVersion("1.0");
 
     QCommandLineParser cmdparser;
     cmdparser.setApplicationDescription("SDR Receiver for JAERO");
@@ -24,12 +24,6 @@ int main(int argc, char *argv[])
     settingsnameoption.setDefaultValue("");
     cmdparser.addOption(settingsnameoption);
 
-    // autostart option (-a)
-    QCommandLineOption showAutoStartOption("a", QCoreApplication::translate("main", "Automatically start streaming when application starts"));
-    cmdparser.addOption(showAutoStartOption);
-
-    cmdparser.process(a);
-    
     if(a.arguments().size()<=1)
     {
         fprintf(stderr, "%s\n", qPrintable(QCoreApplication::translate("main", "Error: Must specify an argument.")));
@@ -40,6 +34,5 @@ int main(int argc, char *argv[])
     MainWindow w;
     w.setWindowTitle("SDRReceiver - "  + MainWindow::settings_filename );
     w.show();
-    if(cmdparser.isSet(showAutoStartOption))QTimer::singleShot(100,&w,SLOT(on_startSDR_clicked()));
     return a.exec();
 }
