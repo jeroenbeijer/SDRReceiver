@@ -67,7 +67,7 @@ Package: ${PACKAGE_NAME}
 Source: ${PACKAGE_SOURCE}
 Section: base
 Priority: extra
-Depends: qt5-default (>= 5.12), qtmultimedia5-dev, libvorbis-dev, libogg-dev, libqt5multimedia5-plugins, libqcustomplot-dev, libqt5svg5-dev, libzmq3-dev, libusb-dev, librtlsdr-dev
+Depends: qt5-default (>= 5.11), qtmultimedia5-dev, libvorbis-dev, libogg-dev, libqt5multimedia5-plugins, libqcustomplot-dev, libqt5svg5-dev, libzmq3-dev, libusb-dev, librtlsdr-dev
 Provides: ${PACKAGE_NAME}
 Maintainer: ${MAINTAINER}
 Version: ${PACKAGE_VERSION%_*}
@@ -82,14 +82,13 @@ cp control ${PACKAGE_NAME}_${PACKAGE_VERSION%_*}-1/DEBIAN
 mkdir -p ${PACKAGE_NAME}_${PACKAGE_VERSION%_*}-1/usr/local/bin
 cat <<EOT > ${PACKAGE_NAME}_${PACKAGE_VERSION%_*}-1/usr/local/bin/SDRReceiver
 #!/bin/bash
-/opt/SDRReceiver/bin/SDRReceiver
+/opt/SDRReceiver/bin/SDRReceiver "\$@"
 EOT
 chmod +x ${PACKAGE_NAME}_${PACKAGE_VERSION%_*}-1/usr/local/bin/SDRReceiver
 
-
 #build and install package
 dpkg-deb --build ${PACKAGE_NAME}_${PACKAGE_VERSION%_*}-1
-sudo apt install ./${PACKAGE_NAME}*.deb -y
+sudo apt install --reinstall ./${PACKAGE_NAME}*.deb -y
 sudo ldconfig
 cd ..
 
