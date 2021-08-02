@@ -87,7 +87,7 @@ void vfo::init(int samplesPerBuffer, bool bind)
 
 
     }
-    outputRate = Fs/(pow(2,decimateCount));
+    outputRate = targetRate;
     osc_bfo = new Oscillator(outputRate, offsetbw);
 
 
