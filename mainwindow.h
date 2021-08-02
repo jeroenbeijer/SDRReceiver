@@ -7,14 +7,10 @@
 #include "jonti/fftwrapper.h"
 #include "sdrj.h"
 
-
 typedef FFTrWrapper<float> FFTr;
 typedef FFTWrapper<float> FFT;
 
-
 const int MAXVFO=50;
-
-
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -30,12 +26,12 @@ public:
 
     static QString settings_filename;
 
+    const QList<int> supportedRTLSDRSampleRates={1536000,1920000};
+
 signals:
 
     void fftData(const std::vector<cpx_typef> &data);
     void fftVFOSlot(QString topic);
-
-
 
 public slots:
      void fftHandlerSlot(const std::vector<cpx_typef>& data);
@@ -88,8 +84,6 @@ private:
 
     bool biasT;
     bool usb;
-
-
 
 };
 #endif // MAINWINDOW_H

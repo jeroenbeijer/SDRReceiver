@@ -3,7 +3,6 @@
 #include <QApplication>
 #include <QCommandLineParser>
 #include <iostream>
-#include <QTimer>
 
 QString MainWindow::settings_filename;
 

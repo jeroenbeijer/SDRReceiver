@@ -37,10 +37,17 @@ SCRIPTPATH=$(dirname $SCRIPT)
 cd $SCRIPTPATH/..
 
 
-#rtsdr
-git clone https://github.com/osmocom/rtl-sdr
-cd rtl-sdr
-mkdir build && cd build
+#rtl-sdr
+FOLDER="rtl-sdr"
+URL="https://github.com/osmocom/rtl-sdr"
+if [ ! -d "$FOLDER" ] ; then
+    git clone $URL $FOLDER
+    cd "$FOLDER"
+else
+    cd "$FOLDER"
+    git pull $URL
+fi
+mkdir -p build && cd build
 cmake -G "MinGW Makefiles" -DCMAKE_INSTALL_PREFIX:PATH=/mingw64/ ..
 mingw32-make
 mingw32-make DESTDIR=/../ install
