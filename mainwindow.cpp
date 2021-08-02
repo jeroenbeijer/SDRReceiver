@@ -35,6 +35,16 @@ MainWindow::MainWindow(QWidget *parent)
         exit(1);
     }
 
+    if(!supportedRTLSDRSampleRates.contains(Fs))
+    {
+        QMessageBox msgBox;
+        QString tmpstr;for(int i=0;i<supportedRTLSDRSampleRates.size();i++)tmpstr+=QString::number(supportedRTLSDRSampleRates[i])+", ";
+        tmpstr.chop(2);
+        msgBox.setText("sample_rate setting in ini file is "+QString::number(Fs)+" and not supported.\nOnly rates "+tmpstr+" are supported");
+        msgBox.exec();
+        exit(1);
+    }
+
     QStringList vfo_str;
 
     center_frequency = settings.value("center_frequency").toInt();
