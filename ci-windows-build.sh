@@ -42,6 +42,7 @@ FOLDER="rtl-sdr"
 URL="https://github.com/osmocom/rtl-sdr"
 if [ ! -d "$FOLDER" ] ; then
     git clone $URL $FOLDER
+    cd "$FOLDER"
 else
     cd "$FOLDER"
     git pull $URL
