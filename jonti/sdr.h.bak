@@ -46,7 +46,7 @@ public:
     bool OpenRtl(int device_idx);
     bool StopAndCloseRtl();
     QStringList deviceNames();
-    void StartRtl(int sample_rate, int frequency, int buflen, int gain = 496);
+    void StartRtl(int sample_rate, int frequency, int gain = 496);
 
     ~sdr();
     rtlsdr_dev_t *rtldev;

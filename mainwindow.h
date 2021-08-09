@@ -26,7 +26,7 @@ public:
 
     static QString settings_filename;
 
-    const QList<int> supportedRTLSDRSampleRates={1536000,1920000};
+    const QList<int> supportedRTLSDRSampleRates={288000,1536000,1920000};
 
 signals:
 
@@ -65,6 +65,7 @@ private:
 
     int Fs;
     int Fs2;
+    int buflen;
 
     QVector<double> pwr;
     QVector<double> smooth_pwr;

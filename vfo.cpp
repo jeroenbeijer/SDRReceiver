@@ -19,6 +19,7 @@ vfo::vfo(QObject *parent) : QObject(parent)
     mpVFOs = 0;
 
     laststageDecimate = false;
+    discard = 0;
     emitFFT = false;
     scalecomp = 1;
     fir_decI = NULL;
@@ -45,8 +46,18 @@ vfo::~vfo()
     if(osc_bfo) delete osc_bfo;
     if(philbert) delete philbert;
     if(fir_usb) delete fir_usb;
+
+
+    if(mpVFOs != 0 && mpVFOs->length() > 0 )
+    {
+        for(int a = 0; a <mpVFOs->length(); a++)
+        {
+            delete mpVFOs->at(a);
+        }
 }
-void vfo::init(int samplesPerBuffer, bool bind)
+
+}
+void vfo::init(int samplesPerBuffer, bool bind, int lateDecimate)
 {
 
     firfilter filt;
@@ -56,21 +67,22 @@ void vfo::init(int samplesPerBuffer, bool bind)
     int samplesOut = samplesPerBuffer/(pow(2,decimateCount));
 
     // samples per buffer should be multiple of 12000 otherwise we need to do one last decimation 4/5
-    if(demodUSB && (samplesPerBuffer/12000)%2>0)
+    if(demodUSB && lateDecimate >0)
     {
         laststageDecimate = true;
+        discard = lateDecimate-1;
 
-        targetRate = (targetRate/5);
-        samplesOut = (samplesOut/5);
+        targetRate = (targetRate/lateDecimate);
+        samplesOut = (samplesOut/lateDecimate);
 
         int firlen = 0;
 
 
 
         QVector<float> coeff = filt.low_pass(2,
-                                            targetRate*5,
+                                             targetRate*lateDecimate,
                                             targetRate/2,
-                                            (double)targetRate/4,
+                                             (double)targetRate/(lateDecimate-1),
                                             firfilter::win_type::WIN_HAMMING,
                                             0);
         firlen = coeff.length();
@@ -355,7 +367,7 @@ void vfo::usb_decimdemod()
 
         }
 
-        else if( check == 4)
+        else if( check == discard)
         {
             fir_decI->FIRUpdate(curr.real());
             fir_decQ->FIRUpdate(curr.imag());

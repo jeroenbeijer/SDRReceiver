@@ -78,7 +78,7 @@ bool sdr::OpenRtl(int device_idx)
 
 }
 
-void sdr::StartRtl(int samplerate, int frequency, int buflen, int gain)
+void sdr::StartRtl(int samplerate, int frequency, int gain)
 {
 
     do_demod_dispatcher_cancel=false;
@@ -98,7 +98,7 @@ void sdr::StartRtl(int samplerate, int frequency, int buflen, int gain)
     rtlsdr_set_tuner_gain(rtldev, gain);
     rtlsdr_set_agc_mode(rtldev,0);
 
-    future_rtlsdr_callback = QtConcurrent::run(rtlsdr_read_async, rtldev,(rtlsdr_read_async_cb_t)rtlsdr_callback_dispatcher, this,0,buflen);//16384*2);
+    future_rtlsdr_callback = QtConcurrent::run(rtlsdr_read_async, rtldev,(rtlsdr_read_async_cb_t)rtlsdr_callback_dispatcher, this,0,int((2*samplerate)/4));//16384*2);
 
     active = true;
 

@@ -61,6 +61,21 @@ MainWindow::MainWindow(QWidget *parent)
 
     int mix_offset = settings.value("mix_offset").toInt();
 
+    // usually 4 buffers per Fs but in some cases 5 due to multiple of 512
+    int bufsplit = 4;
+
+    if(double((int((2*Fs)/4))%512) > 0)
+    {
+
+        buflen = int((2*Fs)/5);
+        bufsplit = 5;
+    }
+    else
+    {
+
+        buflen = int((2*Fs)/4);
+    }
+
 
     if(gain > 0)
     {
@@ -79,8 +94,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     int msize = settings.beginReadArray("main_vfos");
 
-
-
+    // Read main vfos
     for (int i = 0; i < msize; ++i) {
 
         settings.setArrayIndex(i);
@@ -110,11 +124,11 @@ MainWindow::MainWindow(QWidget *parent)
 
 
         pVFO->setFs(Fs);
-        pVFO->setDecimationCount(int(log2(Fs/vfo_out_rate)));
+        pVFO->setDecimationCount(Fs/vfo_out_rate == 1 ? 0 : int(log2(Fs/vfo_out_rate)));
         pVFO->setMixerFreq(center_frequency - vfo_freq);
         pVFO->setDemodUSB(false);
         pVFO->setCompressonStyle(1);
-        pVFO->init(Fs/4, false);
+        pVFO->init(buflen/2, false);
         pVFO->setVFOs(&VFOsub[i]);
         VFOmain.push_back(pVFO);
 
@@ -125,6 +139,7 @@ MainWindow::MainWindow(QWidget *parent)
     nVFO = size;
     vfo_str.push_back("Main");
 
+    // read regular vfos
     for (int i = 0; i < size; ++i) {
 
         settings.setArrayIndex(i);
@@ -175,12 +190,23 @@ MainWindow::MainWindow(QWidget *parent)
         pVFO->setZmqTopic(settings.value("topic").toString());
         pVFO->setZmqAddress(zmq_address);
 
-        if((main_vfo_out_rate/48000)%2 > 0)
+        int lateDecimate = 0;
+        if((main_vfo_out_rate/48000)==5)
         {
 
             pVFO->setDecimationCount(int(log2(main_vfo_out_rate/(5*out_rate))));
+            lateDecimate=5;
 
-        }else
+        }
+        else if((main_vfo_out_rate/48000)==6)
+        {
+
+            pVFO->setDecimationCount(int(log2(main_vfo_out_rate/(6*out_rate))));
+            lateDecimate=6;
+
+        }
+
+        else
         {
             pVFO->setDecimationCount(int(log2(Fs/out_rate))-int(log2(Fs/main_vfo_out_rate)));
 
@@ -191,16 +217,9 @@ MainWindow::MainWindow(QWidget *parent)
         pVFO->setMixerFreq((center_frequency-main_vfo_freq) - vfo_freq);
         pVFO->setFs(main_vfo_out_rate);
         pVFO->setCompressonStyle(1);
-        pVFO->init(main_vfo_out_rate/4,true);
+        pVFO->init(main_vfo_out_rate/bufsplit,true, lateDecimate);
 
-        if(main_vfo_out_rate!=Fs)
-        {
             VFOsub[main_idx].push_back(pVFO);
-        }
-        else
-        {
-            VFOmain.push_back(pVFO);
-        }
 
         connect(pVFO, SIGNAL(fftData(const std::vector<cpx_typef>&)), this, SLOT(fftHandlerSlot(const std::vector<cpx_typef>&)));
         connect(this, SIGNAL(fftVFOSlot(QString)), pVFO, SLOT(fftVFOSlot(QString)));
@@ -444,7 +463,7 @@ void MainWindow::on_startSDR_clicked()
     }
     else if(!remote)
     {
-        radio->StartRtl(Fs,center_frequency, tuner_gain);
+        radio->StartRtl(Fs,center_frequency, buflen, tuner_gain);
     }
 
     if(result)

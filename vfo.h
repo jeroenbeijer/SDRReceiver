@@ -18,7 +18,7 @@ public:
     ~vfo();
     vfo(QObject *parent = 0);
 
-    void init(int samplesPerBuffer, bool bind);
+    void init(int samplesPerBuffer, bool bind, int lateDecimate = 0);
     void process(const std::vector<cpx_typef> & samples);
     void setZmqAddress(QString bind);
     void setZmqTopic(QString topic);
@@ -105,6 +105,7 @@ private:
     int offsetbw;
 
     bool laststageDecimate;
+    int discard;
 
     bool emitFFT;
 
