@@ -30,7 +30,7 @@ The main sample rate for the device is set as follows:
 
 sample_rate=1536000
 
-However this should probably not be changed. Except for the older I3 satellite at 54W all channels fit nicely with a 1.536.000 sample rate and it can be decimated down to 48Khz entirely with half band FIR filters. In order to cover the data channels and voice channels around 1546.8 for 54W it is also possible to run at 1.920.000 but obviously this takes a little more CPU and has no obvious benefit for the I4 satellites. 
+However this should probably not be changed. Except for the older I3 satellite at 54W all channels fit nicely with a 1.536.000 sample rate and it can be decimated down to 48Khz entirely with half band FIR filters. In order to cover the data channels and voice channels around 1546.8 for 54W it is also possible to run at 1.920.000 but obviously this takes a little more CPU and has no obvious benefit for the I4 satellites. A more narrow 288.000 sample rate is also available which might be useful on slower devices or if you are only interested in particular channels. 
 
 The center frequency is chosen so that both the lower speed data channels and higher speed channels as well voice channels are covered:
 
@@ -61,6 +61,10 @@ auto_start=1
 auto_start_tuner_idx=0
 
 The latter key being the zero based index of the RTL device to be started as shown in the device dropdown
+
+On some VFO you may like to low pass the audio prior to sending to jaero, i.e. for the audio channels a 10Khz audio filter could be useful to limit adjecent channel activity. Use the filter_bandwidth ini setting on the vfo to set this. A value of 0 means no filter, a value of 10000 would set a 10Khz hamming windowed low pass filter.
+
+You may also need to adjust the gain slightly for your setup. Increase or decrease the VFO gain value until you get a green volume light in jaero 
 
 The decoding results in jaero should be similar to what one would get from other SDR's but it becomes possible to run jaero almost free of CRC errors even at high CPU loads.
 
