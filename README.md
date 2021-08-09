@@ -44,7 +44,7 @@ tuner_gain=496
 remove the annoying spike in the center of the spectrum
 correct_dc_bias=1
 
-when changing dongles there may be a slight freqency difference. Use this to tune ALL VFO's up or down by a number of Hz. Use positive values to tune higher, negative values # # to tune lower
+when changing dongles there may be a slight freqency difference. Use this to tune ALL VFO's up or down by a number of Hz. Use positive values to tune higher, negative values to tune lower
 
 mix_offset=0
 
@@ -52,7 +52,7 @@ You should be able to connect to remote RTL that is running via rtl_tcp, it will
 
 remote_rtl=127.0.0.1:1234
 
-The main VFO's are shown in the image above. There is typically no need to change these unless perhaps while setting up a new C Band ini file. The SDR should work for C Band as well but the FFT # is quite slow so it is probabaly a good idea to determine the exact frequencies to use via other means.
+The main VFO's are shown in the image above. There is typically no need to change these unless perhaps while setting up a new C Band ini file. The SDR should work for C Band as well but the FFT is quite slow so it is probabaly a good idea to determine the exact frequencies to use via other means.
 
 The SDR can be autostarted and with the following ini keys:
 
