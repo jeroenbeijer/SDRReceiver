@@ -1,6 +1,5 @@
 #include <iostream>
 #include "zmqpublisher.h"
-#include "qmessagebox.h"
 
 
 ZmqPublisher::ZmqPublisher()
@@ -44,23 +43,14 @@ void ZmqPublisher::connect()
         if(bind)
         {
            zmqStatus = zmq_bind(publisher, connected_url.c_str() );
-
-           if(zmqStatus <0)
-           {
-
-               int error = zmq_errno();
-
-               QMessageBox msgBox;
-               msgBox.setText("ZeroMQ could not bind to socket on provided URL " + bindAddress + " error code: " + QString::number(error) + "\r\nCheck if the URL and check if another SDR is already running");
-               msgBox.exec();
-           }
         }
         else
         {
              zmqStatus = zmq_connect(publisher, connected_url.c_str() );
         }
 
-        // will set this to true regardless
+        int error = zmq_errno();
+
         connected = true;
 
     }
