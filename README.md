@@ -84,6 +84,7 @@ auto_start_tuner_serial=00000001
 Note that the serial option will be checked first before applying the index based key if present (i.e. if you leave both enabled). if you have multiple devices with the same serial it will take the first one it finds in the list of devices. The serial number now also shows in the device list drop down.
 
 You can now also auto start the bias t by enabling the following key/setting
+
 auto_start_biast=1
 
 Also added a quick radio button to disable to the main FFT. I doubt it saves any significant cpu usage but certainly some. Hopefully I will have time to do a little bit more work on this to also make C Band a little easier.
