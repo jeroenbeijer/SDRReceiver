@@ -52,6 +52,10 @@ You should be able to connect to remote RTL that is running via rtl_tcp, it will
 
 remote_rtl=127.0.0.1:1234
 
+Also the tuner gain by index position can be selected with this key where a value of 28 is the highest gain
+
+remote_rtl_gain_idx=28
+
 The main VFO's are shown in the image above. There is typically no need to change these unless perhaps while setting up a new C Band ini file. The SDR should work for C Band as well but the FFT is quite slow so it is probabaly a good idea to determine the exact frequencies to use via other means.
 
 The SDR can be autostarted and with the following ini keys:
