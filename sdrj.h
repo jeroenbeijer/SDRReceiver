@@ -32,6 +32,7 @@ public:
     int biasTee(int on, int device_idx);
     bool start_tcp_rtl(QString device_address, int sample_rate, int frequency, int gain = 496);
     bool StopAndCloseRtl();
+    int indexBySerial(const char *serial);
 
 
 signals:

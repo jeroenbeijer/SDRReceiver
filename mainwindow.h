@@ -39,11 +39,12 @@ public slots:
 private slots:
     void makePlot();
     void on_stopSDR_clicked();
-    void on_startSDR_clicked();
+    bool on_startSDR_clicked();
     void on_processFile_clicked();
     void on_comboVFO_currentIndexChanged(const QString &arg1);
     void on_spinBox_valueChanged(int arg1);
     void on_biasTee_clicked();
+    void on_radioFFT_clicked(bool checked);
 
 private:
     Ui::MainWindow *ui;
@@ -85,6 +86,9 @@ private:
 
     bool biasT;
     bool usb;
+    bool enableFFT;
+
+
 
 };
 #endif // MAINWINDOW_H

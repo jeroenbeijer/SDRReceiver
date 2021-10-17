@@ -31,14 +31,6 @@ SOFTWARE.*/
 sdr::sdr(QObject *parent) : QObject(parent)
 {
 
-    //fill Rtl device list
-    QStringList devices_names;
-    int devcnt=rtlsdr_get_device_count();
-    for(int i=0;i<devcnt;i++)
-    {
-        devices_names<<QString::fromLocal8Bit(rtlsdr_get_device_name(i));
-    }
-
     rtldev = NULL;
 
     do_demod_dispatcher_cancel=false;
@@ -259,9 +251,20 @@ QStringList sdr::deviceNames()
     //fill Rtl device list
     QStringList device_names;
     int devcnt=rtlsdr_get_device_count();
+
+    char manufact[256];
+    char product[256];
+    char serial[256];
+
     for(int i=0;i<devcnt;i++)
     {
-        device_names<<QString::fromLocal8Bit(rtlsdr_get_device_name(i));
+
+        rtlsdr_get_device_usb_strings(i,
+                                     (char*)&manufact,
+                                     (char*)&product,
+                                     (char*)&serial);
+
+        device_names<<QString::fromLocal8Bit(rtlsdr_get_device_name(i))+ QString("-") + QString(serial);
     }
 
 

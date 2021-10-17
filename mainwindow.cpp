@@ -13,6 +13,7 @@ MainWindow::MainWindow(QWidget *parent)
     tuner_gain = 496;
     bool dc = false;
     usb = false;
+    enableFFT=true;
 
     QFileInfo fileinfo(settings_filename);
     if(!fileinfo.exists()||!fileinfo.isFile())
@@ -50,8 +51,9 @@ MainWindow::MainWindow(QWidget *parent)
     center_frequency = settings.value("center_frequency").toInt();
 
     int auto_start = settings.value("auto_start").toInt();
+    QString auto_start_tuner_serial = settings.value("auto_start_tuner_serial").toString();
     int auto_start_tuner_idx = settings.value("auto_start_tuner_idx").toInt();
-
+    int auto_start_biast = settings.value("auto_start_biast").toInt();
 
 
     int gain = settings.value("tuner_gain").toInt();
@@ -253,7 +255,7 @@ MainWindow::MainWindow(QWidget *parent)
     qRegisterMetaType< QVector<quint8> >("const std::vector<cpx_type>&");
     qRegisterMetaType< QVector<quint8> >("const std::vector<cpx_typef>&");
 
-    connect(radio, SIGNAL(fftData(const std::vector<cpx_typef>&)), this, SLOT(fftHandlerSlot(const std::vector<cpx_typef>&)));
+    connect(radio, SIGNAL(fftData(const std::vector<cpx_typef>&)), this, SLOT(fftHandlerSlot(const std::vector<cpx_typef>&)),Qt::UniqueConnection);
     connect(radio, SIGNAL(audio_signal_out(const float *, int )),radio,SLOT(demodData(const float*,int)));
     connect(this, SIGNAL(fftVFOSlot(QString)), radio, SLOT(fftVFOSlot(QString)));
 
@@ -264,6 +266,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->spinBox->setRange(center_frequency-100000,center_frequency+100000 );
     ui->spinBox->setValue(center_frequency);
     ui->spinBox->setSingleStep(200);
+    ui->radioFFT->setChecked(true);
 
     MainWindow::makePlot();
 
@@ -286,9 +289,48 @@ MainWindow::MainWindow(QWidget *parent)
 
     if(auto_start == 1)
     {
+
+        if(auto_start_tuner_serial.length() > 0)
+        {
+           int index = radio->indexBySerial(auto_start_tuner_serial.toStdString().c_str());
+
+           switch(index){
+
+               case -1 :{
+                   QMessageBox msgBoxDev1;
+                   msgBoxDev1.setText("Auto start device serial number from ini file is null");
+                   msgBoxDev1.exec();
+                   break;
+               }
+               case -2 : {
+                   QMessageBox msgBoxDev2;
+                   msgBoxDev2.setText("No devices found for auto start by device serial");
+                   msgBoxDev2.exec();
+                   break;
+               }
+               case -3 : {
+                   QMessageBox msgBoxDev3;
+                   msgBoxDev3.setText("No matching devices found for auto start by device serial: " +auto_start_tuner_serial ) ;
+                   msgBoxDev3.exec();
+                   break;
+               }
+
+               default:
+                   auto_start_tuner_idx = index;
+                   break;
+               }
+
+        }
+
         ui->comboSDRs->setCurrentIndex(auto_start_tuner_idx);
 
-        on_startSDR_clicked();
+        bool result = on_startSDR_clicked();
+
+        if(auto_start_biast == 1 && result){
+
+            on_biasTee_clicked();
+        }
+
     }else{
 
         ui->startSDR->setEnabled(true);
@@ -436,7 +478,7 @@ void MainWindow::on_stopSDR_clicked()
 
 }
 
-void MainWindow::on_startSDR_clicked()
+bool MainWindow::on_startSDR_clicked()
 {
 
     bool result = false;
@@ -472,6 +514,8 @@ void MainWindow::on_startSDR_clicked()
         ui->startSDR->setEnabled(false);
         ui->stopSDR->setEnabled(true);
     }
+
+    return result;
 }
 
 
@@ -553,6 +597,18 @@ void MainWindow::on_biasTee_clicked()
         QMessageBox msgBox;
         msgBox.setText("Remote device selected, bias tee not supported");
         msgBox.exec();
+    }
+
+}
+
+void MainWindow::on_radioFFT_clicked(bool checked)
+{
+    if(checked){
+        connect(radio, SIGNAL(fftData(const std::vector<cpx_typef>&)), this, SLOT(fftHandlerSlot(const std::vector<cpx_typef>&)),Qt::UniqueConnection);
+
+    }else{
+        disconnect(radio, SIGNAL(fftData(const std::vector<cpx_typef>&)), this, SLOT(fftHandlerSlot(const std::vector<cpx_typef>&)));
+
     }
 
 }

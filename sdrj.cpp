@@ -303,3 +303,9 @@ void sdrj::demodData(const float* data,int len)
     count++;
 
 }
+int sdrj::indexBySerial(const char *serial)
+{
+
+    return(rtlsdr_get_index_by_serial(serial));
+
+}

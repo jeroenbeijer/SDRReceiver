@@ -1,5 +1,5 @@
 
-DEFINES += SDR_VERSION=\\\"v1.0.0\\\"
+DEFINES += SDR_VERSION=\\\"v1.0.1\\\"
 
 QT       += core gui network
 
