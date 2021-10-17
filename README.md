@@ -70,3 +70,20 @@ The decoding results in jaero should be similar to what one would get from other
 
 
 ![image](https://user-images.githubusercontent.com/31091871/126675321-a9fb3c35-ec5b-4b5b-972d-512ac160d65f.png)
+
+Updated 17th October 2021
+
+Added two new ini keys to auto start based on device serial:
+
+auto_start=1
+auto_start_tuner_serial=00000001
+#auto_start_tuner_idx = 
+
+Note that the serial option will be checked first before applying the index based key if present (i.e. if you leave both enabled). if you have multiple devices with the same serial it will take the first one it finds in the list of devices. The serial number now also shows in the device list drop down.
+
+You can now also auto start the bias t by enabling the following key/setting
+auto_start_biast=1
+
+Also added a quick radio button to disable to the main FFT. I doubt it saves any significant cpu usage but certainly some. Hopefully I will have time to do a little bit more work on this to also make C Band a little easier.
+
+
