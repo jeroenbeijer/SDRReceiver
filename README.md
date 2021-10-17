@@ -76,7 +76,9 @@ The decoding results in jaero should be similar to what one would get from other
 Added two new ini keys to auto start based on device serial:
 
 auto_start=1
+
 auto_start_tuner_serial=00000001
+
 #auto_start_tuner_idx = 
 
 Note that the serial option will be checked first before applying the index based key if present (i.e. if you leave both enabled). if you have multiple devices with the same serial it will take the first one it finds in the list of devices. The serial number now also shows in the device list drop down.
