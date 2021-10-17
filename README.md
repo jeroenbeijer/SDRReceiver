@@ -71,7 +71,7 @@ The decoding results in jaero should be similar to what one would get from other
 
 ![image](https://user-images.githubusercontent.com/31091871/126675321-a9fb3c35-ec5b-4b5b-972d-512ac160d65f.png)
 
-Updated 17th October 2021
+**Updated 17th October 2021**
 
 Added two new ini keys to auto start based on device serial:
 
