@@ -52,7 +52,7 @@ You should be able to connect to remote RTL that is running via rtl_tcp, it will
 
 remote_rtl=127.0.0.1:1234
 
-Also the tuner gain by index position can be selected with this key where a value of 28 is the highest gain
+Also the tuner gain by index position can be selected with this key where a value of 28 is the highest gain for an RTL SDR V3
 
 remote_rtl_gain_idx=28
 
