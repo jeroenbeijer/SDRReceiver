@@ -102,7 +102,7 @@ cp /mingw64/bin/libsodium-23.dll $PWD
 cp /mingw64/bin/libusb-1.0.dll $PWD
 #add readme
 cat <<EOT > readme.md
-# JAERO ${PACKAGE_VERSION}
+# SDRReceiver ${PACKAGE_VERSION}
 
 ### OS Name: $(systeminfo | sed -n -e 's/^OS Name://p' | awk '{$1=$1;print}')
 ### OS Version: $(systeminfo | sed -n -e 's/^OS Version://p' | awk '{$1=$1;print}')
