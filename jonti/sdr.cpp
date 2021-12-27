@@ -27,8 +27,6 @@ SOFTWARE.*/
 #include <iostream>
 #include "qvector.h"
 
-#define _GLIBCXX_USE_NANOSLEEP
-
 sdr::sdr(QObject *parent) : QObject(parent)
 {
 
