@@ -54,6 +54,7 @@ MainWindow::MainWindow(QWidget *parent)
     QString auto_start_tuner_serial = settings.value("auto_start_tuner_serial").toString();
     int auto_start_tuner_idx = settings.value("auto_start_tuner_idx").toInt();
     int auto_start_biast = settings.value("auto_start_biast").toInt();
+    int disableFFT = settings.value("disable_fft").toInt();
 
 
     int gain = settings.value("tuner_gain").toInt();
@@ -266,7 +267,6 @@ MainWindow::MainWindow(QWidget *parent)
     ui->spinBox->setRange(center_frequency-100000,center_frequency+100000 );
     ui->spinBox->setValue(center_frequency);
     ui->spinBox->setSingleStep(200);
-    ui->radioFFT->setChecked(true);
 
     MainWindow::makePlot();
 
@@ -329,6 +329,12 @@ MainWindow::MainWindow(QWidget *parent)
         if(auto_start_biast == 1 && result){
 
             on_biasTee_clicked();
+        }
+        if(disableFFT == 1) {
+            on_radioFFT_clicked(false);
+            ui->radioFFT->setChecked(false);
+        } else {
+            ui->radioFFT->setChecked(true);
         }
 
     }else{
