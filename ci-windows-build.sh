@@ -100,6 +100,7 @@ cp /mingw64/bin/libzmq.dll $PWD
 cp /mingw64/bin/librtlsdr.dll $PWD
 cp /mingw64/bin/libsodium-23.dll $PWD
 cp /mingw64/bin/libusb-1.0.dll $PWD
+cp /mingw64/bin/libmd4c.dll $PWD
 #add readme
 cat <<EOT > readme.md
 # SDRReceiver ${PACKAGE_VERSION}
