@@ -216,7 +216,7 @@ MainWindow::MainWindow(QWidget *parent)
         }
 
         pVFO->setFilterBandwidth(filterbw);
-        pVFO->setGain((float)settings.value("gain").toInt()/100);
+        pVFO->setGain((float)settings.value("gain").toFloat()/100);
         pVFO->setMixerFreq((center_frequency-main_vfo_freq) - vfo_freq);
         pVFO->setFs(main_vfo_out_rate);
         pVFO->setCompressonStyle(1);
