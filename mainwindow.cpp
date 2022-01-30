@@ -341,6 +341,12 @@ MainWindow::MainWindow(QWidget *parent)
 
         ui->startSDR->setEnabled(true);
         ui->stopSDR->setEnabled(false);
+        
+        if(disableFFT == 1) {
+            ui->radioFFT->setChecked(false);
+        } else {
+            ui->radioFFT->setChecked(true);
+        }
     }
 
 }
