@@ -73,7 +73,7 @@ mingw32-make
 mkdir release/sdrreceiver
 cp release/SDRReceiver.exe release/SDRReceiver/
 cd release/SDRReceiver
-windeployqt.exe --force SDRReceiver.exe
+windeployqt.exe --no-translations --force SDRReceiver.exe
 cp /mingw64/bin/libstdc++-6.dll $PWD
 cp /mingw64/bin/libgcc_s_seh-1.dll $PWD
 cp /mingw64/bin/libwinpthread-1.dll $PWD
