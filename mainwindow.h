@@ -64,6 +64,9 @@ private:
     int N;
     int nFFT;
 
+    MovingAverage * pAvgMain;
+    MovingAverage * pAvgVfo;
+
     int Fs;
     int Fs2;
     int buflen;
@@ -79,6 +82,7 @@ private:
     int tuner_gain_idx;
 
     QVector<vfo*> VFOs;
+    // this is arbitrary for now
     QVector<vfo*> VFOsub[3];
     QVector<vfo*> VFOmain;
 
@@ -88,7 +92,7 @@ private:
     bool usb;
     bool enableFFT;
 
-
+    vfo* getVFO(QString name);
 
 };
 #endif // MAINWINDOW_H

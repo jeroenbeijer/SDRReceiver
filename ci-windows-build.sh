@@ -73,15 +73,15 @@ mingw32-make
 mkdir release/sdrreceiver
 cp release/SDRReceiver.exe release/SDRReceiver/
 cd release/SDRReceiver
-windeployqt.exe --no-translations --force SDRReceiver.exe
+windeployqt.exe --no-angle --no-translations --force SDRReceiver.exe
 cp /mingw64/bin/libstdc++-6.dll $PWD
 cp /mingw64/bin/libgcc_s_seh-1.dll $PWD
 cp /mingw64/bin/libwinpthread-1.dll $PWD
 cp /mingw64/bin/zlib1.dll $PWD
 cp /mingw64/bin/Qt5PrintSupport.dll $PWD
 cp /mingw64/bin/libdouble-conversion.dll $PWD
-cp /mingw64/bin/libicuin69.dll $PWD
-cp /mingw64/bin/libicuuc69.dll $PWD
+cp /mingw64/bin/libicuin75.dll $PWD
+cp /mingw64/bin/libicuuc75.dll $PWD
 cp /mingw64/bin/libpcre2-16-0.dll $PWD
 cp /mingw64/bin/libzstd.dll $PWD
 cp /mingw64/bin/libharfbuzz-0.dll $PWD
@@ -89,16 +89,17 @@ cp /mingw64/bin/libpng16-16.dll $PWD
 cp /mingw64/bin/libfreetype-6.dll $PWD
 cp /mingw64/bin/libgraphite2.dll $PWD
 cp /mingw64/bin/libglib-2.0-0.dll $PWD
-cp /mingw64/bin/libicudt69.dll $PWD
+cp /mingw64/bin/libicudt75.dll $PWD
 cp /mingw64/bin/libbz2-1.dll $PWD
 cp /mingw64/bin/libbrotlidec.dll $PWD
 cp /mingw64/bin/libintl-8.dll $PWD
-cp /mingw64/bin/libpcre-1.dll $PWD
+cp /mingw64/bin/libpcre2-8-0.dll $PWD
+cp /mingw64/bin/libpcre2-16-0.dll $PWD
 cp /mingw64/bin/libbrotlicommon.dll $PWD
 cp /mingw64/bin/libiconv-2.dll $PWD
 cp /mingw64/bin/libzmq.dll $PWD
 cp /mingw64/bin/librtlsdr.dll $PWD
-cp /mingw64/bin/libsodium-23.dll $PWD
+cp /mingw64/bin/libsodium-26.dll $PWD
 cp /mingw64/bin/libusb-1.0.dll $PWD
 cp /mingw64/bin/libmd4c.dll $PWD
 #add readme

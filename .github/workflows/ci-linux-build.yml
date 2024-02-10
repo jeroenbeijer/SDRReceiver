@@ -38,7 +38,7 @@ jobs:
       # upload windows artifacts    
       - name: Upload windows binary artifacts
         if: ${{ matrix.os == 'windows-latest' }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: sdrrece_windows_windows
           retention-days: 1
@@ -47,7 +47,7 @@ jobs:
       # upload linux artifacts    
       - name: Upload linux binary artifacts
         if: ${{ matrix.os == 'ubuntu-latest' }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: sdrreceiver_linux
           retention-days: 1
@@ -59,7 +59,7 @@ jobs:
     steps:
       # download all artifacts for this workflow
       - name: Download all workflow artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
       # Create a release
       - name: Create a release
         uses: "marvinpinto/action-automatic-releases@latest"
