@@ -181,6 +181,51 @@ void  FIR::FIRSetPoint(int point, float value)
     points[point]=value;
 }
 
+MovingAverage::MovingAverage(int number)
+{
+    MASz=round(number);
+    MASz=number;
+    MASum=0;
+    MABuffer=new double[MASz];
+    for(int i=0;i<MASz;i++)MABuffer[i]=0;
+    MAPtr=0;
+    Val=0;
+}
+
+void MovingAverage::Zero()
+{
+    for(int i=0;i<MASz;i++)MABuffer[i]=0;
+    MAPtr=0;
+    Val=0;
+    MASum=0;
+}
+
+double MovingAverage::Update(double sig)
+{
+    MASum=MASum-MABuffer[MAPtr];
+    MASum=MASum+fabs(sig);
+    MABuffer[MAPtr]=fabs(sig);
+    MAPtr++;MAPtr%=MASz;
+    Val=MASum/((double)MASz);
+    return Val;
+}
+
+double MovingAverage::UpdateSigned(double sig)
+{
+    MASum=MASum-MABuffer[MAPtr];
+    MASum=MASum+(sig);
+    MABuffer[MAPtr]=(sig);
+    MAPtr++;MAPtr%=MASz;
+    Val=MASum/((double)MASz);
+    return Val;
+}
+
+MovingAverage::~MovingAverage()
+{
+    if(MASz)delete [] MABuffer;
+}
+
+
 FIRHilbert::FIRHilbert(int len, int Fs)
 {
         int i;

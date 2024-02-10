@@ -293,7 +293,7 @@ void sdrj::demodData(const float* data,int len)
 
     }
 
-    int fftnt = 4;
+    int fftnt = 16;
 
     if(count == fftnt && emitFFT)
     {

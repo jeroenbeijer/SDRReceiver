@@ -22,10 +22,16 @@ public:
     void process(const std::vector<cpx_typef> & samples);
     void setZmqAddress(QString bind);
     void setZmqTopic(QString topic);
+    void setZmqTopicLSB(QString topic);
+
+    QString getZmqTopic();
     void setScaleComp(int scale);
     void setFs(int samplerate);
     void setDecimationCount(int count);
+    void setHalfbandTaps(int taps);
     void setMixerFreq(double freq);
+    void setCenterFreq(double freq);
+    double getCenterFreq();
     double getMixerFreq();
     int getOutRate();
     void setOffsetBandwidth(double bw);
@@ -53,6 +59,8 @@ private:
     QString zmqAddress;
     QString zmqConnect;
     QString zmqTopic;
+    QString zmqTopicLSB;
+
     int Fs;
     bool zmqBind;
 
@@ -66,10 +74,13 @@ private:
     QVector<cpx_typef> out;
 
     std::vector<short> transmit_usb;
+    std::vector<short> transmit_lsb;
     std::vector<signed char> transmit_iq;
 
 
     FIR * fir_usb;
+    FIR * fir_lsb;
+
     FIRHilbert * philbert;
     DelayThing<float>  delayT;
 
@@ -77,6 +88,7 @@ private:
     FIR * fir_decQ;
 
     int decimateCount;
+    int halfBandTaps;
     uint32_t outputRate;
 
     //WaveTable * mix_bfo;
@@ -86,13 +98,15 @@ private:
     float gain;
 
     double mixer_freq;
-    double bandwidth;
+    double center_freq;
+
     void usb_demod();
     void usb_decimdemod();
     void compress();
     void transmitData();
 
     bool demodUSB;
+    bool demodLSB;
     bool filterAudio;
 
     int cstyle = 0;

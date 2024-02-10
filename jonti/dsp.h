@@ -75,6 +75,21 @@ public:
         float outsum;
 };
 
+class MovingAverage
+{
+public:
+    MovingAverage(int number);
+    ~MovingAverage();
+    double Update(double sig);
+    double UpdateSigned(double sig);
+    void Zero();
+    double Val;
+private:
+    int MASz;
+    double MASum;
+    double *MABuffer;
+    int MAPtr;
+};
 
 template <class T>
 class DelayThing
