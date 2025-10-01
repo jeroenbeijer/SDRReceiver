@@ -1,5 +1,4 @@
-
-DEFINES += SDR_VERSION=\\\"v1.0\\\"
+DEFINES += SDR_VERSION=\\\"v2.0.0\\\"
 
 QT       += core gui network
 
@@ -11,6 +10,7 @@ TEMPLATE = app
 INSTALL_PATH = /opt/sdrreceiver
 
 CONFIG += c++11
+#CONFIG += sdrplay
 
 # The following define makes your compiler emit warnings if you use
 # any Qt feature that has been marked deprecated (the exact warnings
@@ -38,11 +38,12 @@ SOURCES += \
     oscillator.cpp \
     qcustomplot.cpp \
     mainwindow.cpp \
-    jonti/sdr.cpp \
-    sdrj.cpp \
+    radio.cpp \
+    rtlsdr.cpp \
     vfo.cpp \
-    zmqpublisher.cpp
-
+    zmqpublisher.cpp \
+    filereader.cpp 
+	
 HEADERS += \
     jonti/dsp.h \
     jonti/fftrwrapper.h \
@@ -58,10 +59,18 @@ HEADERS += \
     oscillator.h \
     qcustomplot.h \
     mainwindow.h \
-    jonti/sdr.h \
-    sdrj.h \
+    radio.h \
+    rtlsdr.h \
     vfo.h \
-    zmqpublisher.h
+    zmqpublisher.h \
+    filereader.h 
+	
+# Only include SDRplay files if SDRplay is enabled
+CONFIG(sdrplay) {
+    SOURCES += sdrplay.cpp
+    HEADERS += sdrplay.h
+    DEFINES += HAVE_SDRPLAY
+}
 
 FORMS += \
     mainwindow.ui
@@ -77,13 +86,23 @@ QMAKE_CXXFLAGS_RELEASE += -Ofast
 
 win32 {
 #message("windows")
-LIBS += -llibzmq -llibrtlsdr.dll 
+LIBS += -llibzmq -llibrtlsdr
 } else {
 #message("not windows")
 LIBS += -lzmq -lrtlsdr
 }
 
-
+CONFIG(sdrplay) {
+	win32 {
+	#message("windows")
+	INCLUDEPATH += "C:/sdrplay/API/inc"
+	LIBS += -L"C:/sdrplay/API/x64" -lsdrplay_api
+	} else {
+	#message("not windows")
+	INCLUDEPATH += /usr/local/include/sdrplay
+	LIBS += -lsdrplay_api
+	}
+}
 
 
 

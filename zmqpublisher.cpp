@@ -62,9 +62,7 @@ void ZmqPublisher::connect()
 
         // will set this to true regardless
         connected = true;
-
     }
-
 
 }
 void ZmqPublisher::setAddress(QString bind)
@@ -79,7 +77,8 @@ void ZmqPublisher::setBind(bool b)
     bind = b;
 }
 
-void ZmqPublisher::publish(unsigned char *buf, uint32_t len, QString topic, uint32_t sampleRate){
+void ZmqPublisher::publish(unsigned char *buf, uint32_t len, QString topic, uint32_t sampleRate)
+{
 
     std::string topic_text = topic.toUtf8().constData();
     unsigned char rate[4];
@@ -93,6 +92,11 @@ void ZmqPublisher::publish(unsigned char *buf, uint32_t len, QString topic, uint
         zmq_send(publisher, buf, len, 0 );
     }
 
+}
+
+void ZmqPublisher::transmitData(const QSharedPointer<std::vector<short>> data, uint32_t len, QString topic, uint32_t sampleRate)
+{
+    publish((unsigned char*)data->data(),len,topic,sampleRate);
 }
 
 

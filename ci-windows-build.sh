@@ -36,12 +36,13 @@ SCRIPT=$(realpath $0)
 SCRIPTPATH=$(dirname $SCRIPT)
 cd $SCRIPTPATH/..
 
+
 #SDRReceiver
 cd $SCRIPTPATH
 #needed for github actions
 git fetch --prune --unshallow --tags || true
 git status > /dev/null 2>&1
-PACKAGE_VERSION=1.0
+PACKAGE_VERSION=2.0
 PACKAGE_NAME=SDRReceiver
 MAINTAINER=https://github.com/jeroenbeijer
 PACKAGE_SOURCE=https://github.com/jeroenbeijer/SDRReceiver

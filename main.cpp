@@ -11,7 +11,7 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
 
     QApplication::setApplicationName("SDRReceiver");
-    QApplication::setApplicationVersion("1.0");
+    QApplication::setApplicationVersion("2.0");
 
     QCommandLineParser cmdparser;
     cmdparser.setApplicationDescription("SDR Receiver for JAERO");
@@ -31,6 +31,7 @@ int main(int argc, char *argv[])
     }
 
     MainWindow::settings_filename=cmdparser.value(settingsnameoption);
+
     MainWindow w;
     w.setWindowTitle("SDRReceiver - "  + MainWindow::settings_filename );
     w.show();

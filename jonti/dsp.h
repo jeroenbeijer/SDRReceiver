@@ -39,6 +39,9 @@ public:
         float  FIRUpdateAndProcess(float sig);
         float  FIRUpdateAndProcessHalfBand(float sig);
         float  FIRUpdateAndProcessHalfBandQueue(float sig);
+        float  FIRUpdateAndProcessHalfBandQueue11(int tptr);
+        float  FIRUpdateAndProcessHalfBandQueue23(int tptr);
+        float  FIRUpdateAndProcessHalfBandQueue51(int tptr);
 
         void  FIRUpdate(float sig);
         void  FIRUpdateQueue(float sig);
@@ -75,6 +78,21 @@ public:
         float outsum;
 };
 
+class MovingAverage
+{
+public:
+    MovingAverage(int number);
+    ~MovingAverage();
+    double Update(double sig);
+    double UpdateSigned(double sig);
+    void Zero();
+    double Val;
+private:
+    int MASz;
+    double MASum;
+    double *MABuffer;
+    int MAPtr;
+};
 
 template <class T>
 class DelayThing

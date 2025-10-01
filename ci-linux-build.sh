@@ -31,8 +31,9 @@ set -e
 #we will need sudo later may as well do a sudo now
 if [[ ! $(sudo echo 0) ]]; then exit; fi
 
-#install dependancies and build tools
 sudo apt-get update
+
+#install dependancies and build tools
 sudo apt-get install qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools cpputest build-essential qtmultimedia5-dev cmake libvorbis-dev libogg-dev libqt5multimedia5-plugins checkinstall libqcustomplot-dev libqt5svg5-dev libzmq3-dev  librtlsdr-dev libusb-dev -y
 
 #get script path
@@ -44,7 +45,7 @@ cd $SCRIPTPATH
 #needed for github actions
 git fetch --prune --unshallow --tags || true
 git status > /dev/null 2>&1
-PACKAGE_VERSION=1.0
+PACKAGE_VERSION=2.0
 PACKAGE_NAME=SDRReceiver
 MAINTAINER=https://github.com/jeroenbeijer
 PACKAGE_SOURCE=https://github.com/jeroenbeijer/SDRReceiver

@@ -45,16 +45,13 @@ void HalfBandDecimator::decimate(const std::vector<cpx_typef> &in, std::vector<c
     int step = 0;
     // decimate half band 1
     int size = (int)in.size();
+
     for(int i=0;i<size;++i)
     {
 
-        cpx_typef curr;
-
         if(i%2==0)
         {
-            curr = cpx_typef(fir_i->FIRUpdateAndProcessHalfBandQueue(in[i].real()), fir_q->FIRUpdateAndProcessHalfBandQueue(in[i].imag()));
-            out[step]=curr;
-
+            out[step] = cpx_typef(fir_i->FIRUpdateAndProcessHalfBandQueue(in[i].real()), fir_q->FIRUpdateAndProcessHalfBandQueue(in[i].imag()));
             step++;
 
         }else
