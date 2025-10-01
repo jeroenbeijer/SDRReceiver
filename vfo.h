@@ -1,12 +1,14 @@
 #ifndef VFO_H
 #define VFO_H
 
-#include "qstring.h"
+#include <qstring.h>
+#include <QSharedPointer>
 #include "zmqpublisher.h"
-#include "halfbanddecimator.h"
-#include "oscillator.h"
-
-
+#include "dsp/halfbanddecimator.h"
+#include "dsp/oscillator.h"
+#include "complexsamplefanoutpool.h"
+#include "audiobufferqueue.h"
+#include "dsp/firhilbert.h"
 
 class vfo : public QObject
 {
@@ -18,58 +20,52 @@ public:
     ~vfo();
     vfo(QObject *parent = 0);
 
-    void init(int samplesPerBuffer, bool bind, int lateDecimate = 0);
-    void process(const std::vector<cpx_typef> & samples);
+    void init(int samplesPerBuffer, int lateDecimate = 0);
+    void process(ComplexSampleBuffer* buf);
     void setZmqAddress(QString bind);
     void setZmqTopic(QString topic);
-    void setScaleComp(int scale);
+    void setZmqTopicLSB(QString topic);
+    void setQueue(AudioSampleBufferQueue* queue);
+
+    QString getZmqTopic();
     void setFs(int samplerate);
     void setDecimationCount(int count);
+    void setHalfbandTaps(int taps);
     void setMixerFreq(double freq);
+    void setCenterFreq(double freq);
+    double getCenterFreq();
     double getMixerFreq();
     int getOutRate();
-    void setOffsetBandwidth(double bw);
     void setFilterBandwidth(double bw);
     void setGain(float g);
     void setDemodUSB(bool usb);
     bool getDemodUSB();
-    void setCompressonStyle(int st);
-    void setFilter(bool filter, int bw = 0);
     void setVFOs(QVector<vfo*> *pVFOs);
     std::vector<cpx_typef> decimate[9];
     QVector<vfo*> * mpVFOs;
 
-
-
 signals:
 
-    void fftData(const std::vector<cpx_typef> &data);
+    void fftData(const QSharedPointer<std::vector<cpx_typef>> data);
+    void bufferReady();
 
 public slots:
-     void fftVFOSlot(QString topic);
+    void fftVFOSlot(QString topic);
 
 private:
 
     QString zmqAddress;
     QString zmqConnect;
     QString zmqTopic;
-    int Fs;
-    bool zmqBind;
+    QString zmqTopicLSB;
 
-    //static publisher when binding
-    static ZmqPublisher bind_publisher;
-    ZmqPublisher connect_publisher;
+    int Fs;
 
     HalfBandDecimator *  hdecimator[8];
 
-
-    QVector<cpx_typef> out;
-
-    std::vector<short> transmit_usb;
-    std::vector<signed char> transmit_iq;
-
-
     FIR * fir_usb;
+    FIR * fir_lsb;
+
     FIRHilbert * philbert;
     DelayThing<float>  delayT;
 
@@ -77,32 +73,28 @@ private:
     FIR * fir_decQ;
 
     int decimateCount;
+    int halfBandTaps;
     uint32_t outputRate;
+    uint32_t samplesOut;
 
-    //WaveTable * mix_bfo;
-    Oscillator * osc_bfo;
-    Oscillator * osc_mix;
+    Oscillator * pOsc_mix;
+
+
 
     float gain;
 
     double mixer_freq;
-    double bandwidth;
-    void usb_demod();
-    void usb_decimdemod();
-    void compress();
-    void transmitData();
+    double center_freq;
+
+    void ssbDemod();
+    void finalDecim();
 
     bool demodUSB;
-    bool filterAudio;
-
-    int cstyle = 0;
+    bool demodLSB;
 
     cpx_typef avecpt;
-    float val;
-    float one;
 
     int filterbw;
-    int offsetbw;
 
     bool laststageDecimate;
     int discard;
@@ -111,7 +103,11 @@ private:
 
     int FFTcount;
 
-    int scalecomp;
+    QSharedPointer<std::vector<cpx_typef>> sharedSamples;
+    QSharedPointer<std::vector<short>> sharedTransmit;
+
+    ComplexSampleFanoutPool bufferPool;
+    AudioSampleBufferQueue* pAudioBufferQueue = nullptr;
 
 };
 

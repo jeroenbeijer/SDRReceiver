@@ -36,14 +36,10 @@ class FIR
 public:
         FIR(int _NumberOfPoints, int queuesz);
         ~FIR();
-        float  FIRUpdateAndProcess(float sig);
-        float  FIRUpdateAndProcessHalfBand(float sig);
-        float  FIRUpdateAndProcessHalfBandQueue(float sig);
 
         void  FIRUpdate(float sig);
-        void  FIRUpdateQueue(float sig);
-
         float  FIRUpdateAndProcess(float sig, float FractionOfSampleOffset);
+        float FIRUpdateAndProcess(float sig);
         void  FIRSetPoint(int point, float value);
 
         float *points;
@@ -52,29 +48,26 @@ public:
         int buffsize;
         int ptr;
         float outsum;
-
-
-        void FIRQueueBackToFront();
         float * queue;
         int queuePtr;
 };
 
-class FIRHilbert
+
+class MovingAverage
 {
 public:
-        FIRHilbert(int len, int Fs);
-        ~FIRHilbert();
-        double  FIRUpdateAndProcess(float sig);
-
-        float *points;
-        float *buff;
-        int NumberOfPoints;
-        int buffsize;
-        int ptr;
-        int M;
-        float outsum;
+    MovingAverage(int number);
+    ~MovingAverage();
+    double Update(double sig);
+    double UpdateSigned(double sig);
+    void Zero();
+    double Val;
+private:
+    int MASz;
+    double MASum;
+    double *MABuffer;
+    int MAPtr;
 };
-
 
 template <class T>
 class DelayThing

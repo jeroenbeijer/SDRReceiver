@@ -75,8 +75,10 @@ QVector<float> firfilter::low_pass(double gain,
     // construct the truncated ideal impulse response
     // [sin(x)/x for the low pass case]
 
+
     QVector<float> taps(ntaps);
-    QVector<float> w = QVector<float>::fromStdVector(window(window_type, ntaps));
+    auto win = window(window_type, ntaps);   // returns std::vector<float>
+    QVector<float> w(win.begin(), win.end());
 
     int M = (ntaps - 1) / 2;
     double fwT0 = 2 * M_PI * cutoff_freq / sampling_freq;

@@ -28,7 +28,7 @@ SOFTWARE.*/
 #include <iostream>
 #include "qvector.h"
 
-sdr::sdr(QObject *parent) : QObject(parent)
+sdr::sdr(QObject *parent): QObject(parent)
 {
 
     rtldev = NULL;
@@ -57,7 +57,7 @@ sdr::~sdr()
 
 }
 
-bool sdr::OpenRtl(int device_idx)
+bool sdr::Open(int device_idx)
 {
 
     int open_res = rtlsdr_open(&rtldev,device_idx);
@@ -70,7 +70,7 @@ bool sdr::OpenRtl(int device_idx)
 
 }
 
-void sdr::StartRtl(int samplerate, int frequency, int buflen, int gain)
+void sdr::Start(int samplerate, int frequency, int buflen, int gain)
 {
 
     do_demod_dispatcher_cancel=false;
@@ -160,7 +160,7 @@ bool sdr::demod_dispatcher()
         //check if reason for waking is to cancel
         if(do_demod_dispatcher_cancel)break;
 
-        //cycle beffers
+        //cycle buffers
         buffers_tail_ptr%=N_BUFFERS;
 
         //load buffer ptr and size
@@ -184,7 +184,7 @@ bool sdr::demod_dispatcher()
 }
 
 
-bool sdr::StopAndCloseRtl()
+bool sdr::StopAndClose()
 {
     bool result=false;
     if(active)
@@ -213,7 +213,7 @@ bool sdr::StopRtl()
         future_rtlsdr_callback.waitForFinished();
         result=future_rtlsdr_callback.result();
         if(result)qDebug()<<"Error stopping thread";
-        std::this_thread::sleep_for(std::chrono::milliseconds(250));//100ms seems to be the min
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));//100ms seems to be the min
         qDebug()<<"rtlsdr_callback stopped";
     }
 
@@ -227,7 +227,7 @@ bool sdr::StopRtl()
         buffers_mut.unlock();
         future_demod_dispatcher.waitForFinished();
         do_demod_dispatcher_cancel=false;
-        std::this_thread::sleep_for(std::chrono::milliseconds(250));
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         qDebug()<<"demod_dispatcher stopped";
     }
 
@@ -271,4 +271,5 @@ QStringList sdr::deviceNames()
     return device_names;
 
 }
+
 

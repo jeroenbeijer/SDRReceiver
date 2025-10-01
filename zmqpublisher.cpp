@@ -1,6 +1,8 @@
 #include <iostream>
 #include "zmqpublisher.h"
 #include "qmessagebox.h"
+#include "audiobufferpool.h"
+#include "audiobufferpoolaccess.h"
 
 
 ZmqPublisher::ZmqPublisher()
@@ -36,10 +38,7 @@ void ZmqPublisher::connect()
         zmq_setsockopt(publisher, ZMQ_RECONNECT_IVL,(void*)&reconnectInterval,sizeof(ZMQ_RECONNECT_IVL));
         zmq_setsockopt(publisher, ZMQ_RECONNECT_IVL_MAX,(void*)&maxReconnectInterval,sizeof(ZMQ_RECONNECT_IVL_MAX));
 
-
-
         std::string connected_url = bindAddress.toUtf8().constData();
-
 
         if(bind)
         {
@@ -62,9 +61,7 @@ void ZmqPublisher::connect()
 
         // will set this to true regardless
         connected = true;
-
     }
-
 
 }
 void ZmqPublisher::setAddress(QString bind)
@@ -79,21 +76,35 @@ void ZmqPublisher::setBind(bool b)
     bind = b;
 }
 
-void ZmqPublisher::publish(unsigned char *buf, uint32_t len, QString topic, uint32_t sampleRate){
+void ZmqPublisher::bufferReady()
+{
 
-    std::string topic_text = topic.toUtf8().constData();
-    unsigned char rate[4];
-    memcpy(rate, &sampleRate, 4);
+    QSharedPointer<AudioSampleBuffer> buffer;
 
-    if(len != 0)
-    {
+    while (pAudioBufferQueue->tryPop(buffer)) {
 
-        zmq_send(publisher, topic_text.c_str(), 5, ZMQ_SNDMORE);
-        zmq_send(publisher, rate, 4, ZMQ_SNDMORE );
-        zmq_send(publisher, buf, len, 0 );
+        std::string topic_text = buffer->topic.toUtf8().constData();;
+        uint32_t len         = buffer->len;
+        uint32_t sampleRate  = buffer->sampleRate;
+
+        unsigned char rate[4];
+
+        memcpy(rate, &sampleRate, 4);
+
+        if(len != 0)
+        {
+
+            zmq_send(publisher, topic_text.c_str(), 5, ZMQ_SNDMORE);
+            zmq_send(publisher, rate, 4, ZMQ_SNDMORE );
+            zmq_send(publisher, (unsigned char*)buffer->data.data(), len, 0 );
+        }
+        audioPool().release(buffer);
     }
-
 }
 
+void ZmqPublisher::setQueue(AudioSampleBufferQueue* queue)
+{
+    pAudioBufferQueue = queue;
+}
 
 

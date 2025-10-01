@@ -94,3 +94,53 @@ auto_start_biast=1
 Also added a quick radio button to disable to the main FFT. I doubt it saves any significant cpu usage but certainly some. Hopefully I will have time to do a little bit more work on this to also make C Band a little easier.
 
 
+**Updated 24th January 2026**
+
+Added basic support for SDRPlay. I have defaulted several tuner parameters and basically only the bandwidth and the gain are set via the ini file. I only own an RSP1A so other devices are not tested.
+
+There is a sample 25E ini file in the /ini folder. But to use an SDRPlay is quite straight forward. Add/select:
+
+#3072000,3840000,6144000,7680000
+sample_rate=3072000
+
+tuner_type=sdrplay
+
+#Enter the SDRPlay gain here, 0 - 59
+tuner_gain=59
+
+#Enter the SDRPlay serial to autostart
+auto_start_tuner_serial=1712004493
+
+All other options remain the same. 
+
+Due the higher bandwidth and demands on processing larger volumes of data, all VFO's now run in their own thread. I have tried to optimize several parts of the application and hopefully the performance is slightly better than the old version. 
+Github builds will not have SDRPlay enabled due to licensing issues. I will add those builds manually and they will be built with QT6 and will have some additional optimizations enabled which may cause issues on older CPU's. If required maybe I will add a QT5 build for SDRPlay as well.
+
+I have also added a key to use more filter taps in the half band decimators. The default is 11 taps which can lead to images that should not be there. For 25E I run with these to prevent this.
+
+The added key is the halfband_taps and you can choose 11 (default), 23 or 51. Obviously 51 uses more CPU so I would not use this unless it is needed.
+
+[main_vfos]
+size=2
+1\frequency=1545116000
+1\halfband_taps=51
+1\out_rate=384000
+2\frequency=1546096000
+2\halfband_taps=51
+2\out_rate=192000
+
+You can also set it for each regular VFO
+
+4\frequency=1545130000
+4\gain=2
+4\data_rate=600
+4\halfband_taps=51
+4\fiter_bandwidth=0
+4\topic=VFO04
+
+I have also reworked the VFO display, each VFO now shows the full IQ spectrum with negative and positive frequencies. Typically when using the USB output the right hand side will be what jaero receives. 
+There is an option to also output LSB from the same VFO but the currently released jaero does not support this yet. More on this later.
+
+For raspberry pi you should be able to just clone the github repo and run the ci-linux-build.sh script. Then install the package.
+
+ 

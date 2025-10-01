@@ -71,105 +71,12 @@ float  FIR::FIRUpdateAndProcess(float sig)
 }
 
 
-float  FIR::FIRUpdateAndProcessHalfBand(float sig)
-{
-
-    buff[ptr]=sig;
-    ptr++;if(ptr>=buffsize)ptr=0;//ptr%=buffsize;
-    int tptr=ptr;
-    outsum=0;
 
 
-    for(int i=0;i<NumberOfPoints;i++)
-    {
-
-            if(i%2 == 0 || i ==25)
-            {
-               outsum+=points[i]*buff[tptr];
-            }
-            tptr++;if(tptr>=buffsize)tptr=0;//tptr%=buffsize;
-    }
-
-    return outsum;
-}
-
-float  FIR::FIRUpdateAndProcessHalfBandQueue(float sig)
-{
-
-    queue[queuePtr]=sig;
-    queuePtr++;
-    int tptr = queuePtr - NumberOfPoints;
-
-    outsum=0;
-
-    switch(NumberOfPoints)
-    {
-
-      case 51 :
-
-        outsum += points[0]*(queue[tptr] + queue[tptr + 50])
-            + points[2]*(queue[tptr+2] + queue[tptr + 48])
-            + points[4]*(queue[tptr+4] + queue[tptr + 46])
-            + points[6]*(queue[tptr+6] + queue[tptr + 44])
-            + points[8]*(queue[tptr+8] + queue[tptr + 42])
-            + points[10]*(queue[tptr+10] + queue[tptr + 40])
-            + points[12]*(queue[tptr+12] + queue[tptr + 38])
-            + points[14]*(queue[tptr+14] + queue[tptr + 36])
-            + points[16]*(queue[tptr+16] + queue[tptr + 34])
-            + points[18]*(queue[tptr+18] + queue[tptr + 32])
-            + points[20]*(queue[tptr+20] + queue[tptr + 30])
-            + points[22]*(queue[tptr+22] + queue[tptr + 28])
-            + points[24]*(queue[tptr+24] + queue[tptr + 26])
-            + points[25]*(queue[tptr+25]) ;
-        break;
-
-     case 23:
-
-        outsum += points[0]*(queue[tptr] + queue[tptr + 22])
-            + points[2]*(queue[tptr+2] + queue[tptr + 20])
-            + points[4]*(queue[tptr+4] + queue[tptr + 18])
-            + points[6]*(queue[tptr+6] + queue[tptr + 16])
-            + points[8]*(queue[tptr+8] + queue[tptr + 14])
-            + points[10]*(queue[tptr+10] + queue[tptr + 12])
-            + points[11]*(queue[tptr+11]) ;
-        break;
-
-    case 11:
-
-       outsum += points[0]*(queue[tptr] + queue[tptr + 10])
-           + points[2]*(queue[tptr+2] + queue[tptr + 8])
-           + points[4]*(queue[tptr+4] + queue[tptr + 6])
-           + points[5]*(queue[tptr+5]) ;
-        break;
-    }
-
-
-
-    return outsum;
-}
 void  FIR::FIRUpdate(float sig)
 {
         buff[ptr]=sig;
         ptr++;ptr%=buffsize;
-}
-
-void  FIR::FIRUpdateQueue(float sig)
-{
-        queue[queuePtr]=sig;
-        queuePtr++;
-}
-
-
-void FIR::FIRQueueBackToFront()
-{
-
-        //queuePtr points to the next empy slot
-        if(queuePtr >= NumberOfPoints)
-        {
-            std::copy(queue + ((queuePtr-1)-NumberOfPoints), queue + (queuePtr-1), queue);
-        }
-
-        queuePtr = NumberOfPoints;
 }
 
 
@@ -181,57 +88,48 @@ void  FIR::FIRSetPoint(int point, float value)
     points[point]=value;
 }
 
-FIRHilbert::FIRHilbert(int len, int Fs)
+MovingAverage::MovingAverage(int number)
 {
-        int i;
-        points=0;buff=0;
-
-        NumberOfPoints=len;
-
-        points=new float[len];
-        for(i=0;i<len;i++)points[i]=0;
-        buff=new float[len];
-        for(i=0;i<len;i++)buff[i]=0;
-        ptr=0;
-        outsum=0;
-
-        QVector<float> tempCoeffs(len);
-
-        float sumofsquares = 0;
-
-        for (int n=0; n < len; n++) {
-            if (n == len/2) {
-                tempCoeffs[n] = 0;
-            } else {
-                tempCoeffs[n] = Fs / (M_PI * (n-len/2) ) * ( 1 - cos(M_PI * (n-len/2) ));
-
-
-            }
-            sumofsquares += tempCoeffs[n]*tempCoeffs[n];
-        }
-        double gain = sqrt(sumofsquares);
-
-        for (int i=0; i < len; i++) {
-            points[i] = tempCoeffs[len-i-1]/gain;
-        }
-}
-double  FIRHilbert::FIRUpdateAndProcess(float sig)
-{
-        buff[ptr]=sig;
-        ptr++;if(ptr>=NumberOfPoints)ptr=0;
-        int tptr=ptr;
-        outsum=0;
-
-        for(int i=0;i<NumberOfPoints;i++)
-        {
-                outsum+=points[i]*buff[tptr];
-                tptr++;if(tptr>=NumberOfPoints)tptr=0;
-        }
-        return outsum;
+    MASz=round(number);
+    MASz=number;
+    MASum=0;
+    MABuffer=new double[MASz];
+    for(int i=0;i<MASz;i++)MABuffer[i]=0;
+    MAPtr=0;
+    Val=0;
 }
 
-FIRHilbert::~FIRHilbert()
+void MovingAverage::Zero()
 {
-        if(points)delete [] points;
-        if(buff)delete [] buff;
+    for(int i=0;i<MASz;i++)MABuffer[i]=0;
+    MAPtr=0;
+    Val=0;
+    MASum=0;
 }
+
+double MovingAverage::Update(double sig)
+{
+    MASum=MASum-MABuffer[MAPtr];
+    MASum=MASum+fabs(sig);
+    MABuffer[MAPtr]=fabs(sig);
+    MAPtr++;MAPtr%=MASz;
+    Val=MASum/((double)MASz);
+    return Val;
+}
+
+double MovingAverage::UpdateSigned(double sig)
+{
+    MASum=MASum-MABuffer[MAPtr];
+    MASum=MASum+(sig);
+    MABuffer[MAPtr]=(sig);
+    MAPtr++;MAPtr%=MASz;
+    Val=MASum/((double)MASz);
+    return Val;
+}
+
+MovingAverage::~MovingAverage()
+{
+    if(MASz)delete [] MABuffer;
+}
+
+

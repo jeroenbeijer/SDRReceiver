@@ -25,11 +25,11 @@ SOFTWARE.*/
 
 #include "qfuture.h"
 #include <QVector>
-#include "complex.h"
 #include "jonti/fftrwrapper.h"
 #include "qmutex.h"
 #include "QWaitCondition"
 #include <QTcpSocket>
+
 
 extern "C" {
 #include "rtl-sdr.h"
@@ -43,20 +43,23 @@ Q_OBJECT
 public:
 
     sdr(QObject *parent = 0);
-    bool OpenRtl(int device_idx);
-    bool StopAndCloseRtl();
-    QStringList deviceNames();
-    void StartRtl(int sample_rate, int frequency, int buflen, int gain = 496);
-
     ~sdr();
+
+    bool Open(int device_idx) ;
+    bool StopAndClose() ;
+    QStringList deviceNames() ;
+    void Start(int sample_rate, int frequency, int buflen, int gain = 496) ;
+
+protected:
+
     rtlsdr_dev_t *rtldev;
     bool active;
     QVector<float> floats;
 
-
 signals:
 
     void audio_signal_out(const float *inputBuffer, int size);
+
 
 
 public slots:
@@ -82,7 +85,7 @@ private:
     QFuture<bool> future_demod_dispatcher;
     bool do_demod_dispatcher_cancel;
 
-    //how we talk to the rtl_callack thread
+    //how we talk to the rtl_callback thread
     QFuture<int> future_rtlsdr_callback;
 
     //For returning data from the rtl_callback thread to the demod_dispatcher thread
