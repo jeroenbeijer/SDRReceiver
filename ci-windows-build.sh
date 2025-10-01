@@ -80,8 +80,8 @@ cp /mingw64/bin/libwinpthread-1.dll $PWD
 cp /mingw64/bin/zlib1.dll $PWD
 cp /mingw64/bin/Qt5PrintSupport.dll $PWD
 cp /mingw64/bin/libdouble-conversion.dll $PWD
-cp /mingw64/bin/libicuin69.dll $PWD
-cp /mingw64/bin/libicuuc69.dll $PWD
+cp /mingw64/bin/libicuin77.dll $PWD
+cp /mingw64/bin/libicuuc77.dll $PWD
 cp /mingw64/bin/libpcre2-16-0.dll $PWD
 cp /mingw64/bin/libzstd.dll $PWD
 cp /mingw64/bin/libharfbuzz-0.dll $PWD
@@ -89,7 +89,7 @@ cp /mingw64/bin/libpng16-16.dll $PWD
 cp /mingw64/bin/libfreetype-6.dll $PWD
 cp /mingw64/bin/libgraphite2.dll $PWD
 cp /mingw64/bin/libglib-2.0-0.dll $PWD
-cp /mingw64/bin/libicudt69.dll $PWD
+cp /mingw64/bin/libicudt77.dll $PWD
 cp /mingw64/bin/libbz2-1.dll $PWD
 cp /mingw64/bin/libbrotlidec.dll $PWD
 cp /mingw64/bin/libintl-8.dll $PWD
