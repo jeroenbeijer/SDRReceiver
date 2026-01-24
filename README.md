@@ -100,16 +100,7 @@ Added basic support for SDRPlay. I have defaulted several tuner parameters and b
 
 There is a sample 25E ini file in the /ini folder. But to use an SDRPlay is quite straight forward. Add/select:
 
-#3072000,3840000,6144000,7680000
-sample_rate=3072000
-
-tuner_type=sdrplay
-
-#Enter the SDRPlay gain here, 0 - 59
-tuner_gain=59
-
-#Enter the SDRPlay serial to autostart
-auto_start_tuner_serial=1712004493
+<img width="451" height="185" alt="image" src="https://github.com/user-attachments/assets/a14e381f-89cd-4f11-b6c0-ed2de4bb1fe7" />
 
 All other options remain the same. 
 
@@ -120,23 +111,12 @@ I have also added a key to use more filter taps in the half band decimators. The
 
 The added key is the halfband_taps and you can choose 11 (default), 23 or 51. Obviously 51 uses more CPU so I would not use this unless it is needed.
 
-[main_vfos]
-size=2
-1\frequency=1545116000
-1\halfband_taps=51
-1\out_rate=384000
-2\frequency=1546096000
-2\halfband_taps=51
-2\out_rate=192000
+<img width="396" height="135" alt="image" src="https://github.com/user-attachments/assets/37e760ab-3d96-4a81-88a0-3a4da29fa205" />
 
 You can also set it for each regular VFO
 
-4\frequency=1545130000
-4\gain=2
-4\data_rate=600
-4\halfband_taps=51
-4\fiter_bandwidth=0
-4\topic=VFO04
+<img width="272" height="98" alt="image" src="https://github.com/user-attachments/assets/2e54d7b6-998b-4bef-8c0b-ef70e0cd47fd" />
+
 
 I have also reworked the VFO display, each VFO now shows the full IQ spectrum with negative and positive frequencies. Typically when using the USB output the right hand side will be what jaero receives. 
 There is an option to also output LSB from the same VFO but the currently released jaero does not support this yet. More on this later.
