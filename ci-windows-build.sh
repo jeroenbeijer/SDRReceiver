@@ -36,12 +36,13 @@ SCRIPT=$(realpath $0)
 SCRIPTPATH=$(dirname $SCRIPT)
 cd $SCRIPTPATH/..
 
+
 #SDRReceiver
 cd $SCRIPTPATH
 #needed for github actions
 git fetch --prune --unshallow --tags || true
 git status > /dev/null 2>&1
-PACKAGE_VERSION=1.0
+PACKAGE_VERSION=2.0
 PACKAGE_NAME=SDRReceiver
 MAINTAINER=https://github.com/jeroenbeijer
 PACKAGE_SOURCE=https://github.com/jeroenbeijer/SDRReceiver
@@ -64,8 +65,8 @@ cp /mingw64/bin/libwinpthread-1.dll $PWD
 cp /mingw64/bin/zlib1.dll $PWD
 cp /mingw64/bin/Qt5PrintSupport.dll $PWD
 cp /mingw64/bin/libdouble-conversion.dll $PWD
-cp /mingw64/bin/libicuin77.dll $PWD
-cp /mingw64/bin/libicuuc77.dll $PWD
+cp /mingw64/bin/libicuin78.dll $PWD
+cp /mingw64/bin/libicuuc78.dll $PWD
 cp /mingw64/bin/libpcre2-16-0.dll $PWD
 cp /mingw64/bin/libzstd.dll $PWD
 cp /mingw64/bin/libharfbuzz-0.dll $PWD
@@ -73,7 +74,7 @@ cp /mingw64/bin/libpng16-16.dll $PWD
 cp /mingw64/bin/libfreetype-6.dll $PWD
 cp /mingw64/bin/libgraphite2.dll $PWD
 cp /mingw64/bin/libglib-2.0-0.dll $PWD
-cp /mingw64/bin/libicudt77.dll $PWD
+cp /mingw64/bin/libicudt78.dll $PWD
 cp /mingw64/bin/libbz2-1.dll $PWD
 cp /mingw64/bin/libbrotlidec.dll $PWD
 cp /mingw64/bin/libintl-8.dll $PWD

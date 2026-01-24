@@ -1,13 +1,28 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "qcustomplot.h"
 #include <qsettings.h>
+#include <qmessagebox.h>
 #include <iostream>
 #include <QFileInfo>
+#include <QSharedPointer>
+#include "audiobufferpoolaccess.h"
+
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
+
+
+    qRegisterMetaType<QVector<quint8>>("const QVector<cpx_type>&");
+    qRegisterMetaType<QVector<quint8>>("const std::vector<cpx_type>&");
+    qRegisterMetaType<QVector<quint8>>("const std::vector<cpx_typef>&");
+    qRegisterMetaType<QSharedPointer<std::vector<cpx_typef>>>("QSharedPointer<std::vector<cpx_typef>>");
+    qRegisterMetaType<QSharedPointer<std::vector<cpx_typef>>>("QSharedPointer<std::vector<short>>");
+    qRegisterMetaType<QSharedPointer<std::vector<cpx_typef>>>("QSharedPointer<AudioBuffer>");
+    qRegisterMetaType<uint32_t>("const uint32_t");
+
 
     biasT = false;
     tuner_gain = 496;
@@ -36,14 +51,46 @@ MainWindow::MainWindow(QWidget *parent)
         exit(1);
     }
 
-    if(!supportedRTLSDRSampleRates.contains(Fs))
+
+
+    if(settings.value("tuner_type").toString() == "sdrplay")
     {
+
+#ifndef HAVE_SDRPLAY
         QMessageBox msgBox;
-        QString tmpstr;for(int i=0;i<supportedRTLSDRSampleRates.size();i++)tmpstr+=QString::number(supportedRTLSDRSampleRates[i])+", ";
-        tmpstr.chop(2);
-        msgBox.setText("sample_rate setting in ini file is "+QString::number(Fs)+" and not supported.\nOnly rates "+tmpstr+" are supported");
+        msgBox.setText("Non SDRPlay enabled build. SDRPlay not supported");
         msgBox.exec();
         exit(1);
+#endif
+
+
+        if(!supportedSDRPlayampleRates.contains(Fs))
+        {
+            QMessageBox msgBox;
+            QString tmpstr;for(int i=0;i<supportedSDRPlayampleRates.size();i++)tmpstr+=QString::number(supportedSDRPlayampleRates[i])+", ";
+            tmpstr.chop(2);
+            msgBox.setText("sample_rate setting in ini file is "+QString::number(Fs)+" and not supported.\nOnly rates "+tmpstr+" are supported");
+            msgBox.exec();
+            exit(1);
+        }
+
+#ifdef HAVE_SDRPLAY
+        pRadio = new SdrPlay(this);
+#endif
+
+    }else
+    {
+        if(!supportedRTLSDRSampleRates.contains(Fs))
+        {
+            QMessageBox msgBox;
+            QString tmpstr;for(int i=0;i<supportedRTLSDRSampleRates.size();i++)tmpstr+=QString::number(supportedRTLSDRSampleRates[i])+", ";
+            tmpstr.chop(2);
+            msgBox.setText("sample_rate setting in ini file is "+QString::number(Fs)+" and not supported.\nOnly rates "+tmpstr+" are supported");
+            msgBox.exec();
+            exit(1);
+        }
+
+        pRadio = new RtlSdr(this);
     }
 
     QStringList vfo_str;
@@ -55,8 +102,6 @@ MainWindow::MainWindow(QWidget *parent)
     int auto_start_tuner_idx = settings.value("auto_start_tuner_idx").toInt();
     int auto_start_biast = settings.value("auto_start_biast").toInt();
     int disableFFT = settings.value("disable_fft").toInt();
-
-
     int gain = settings.value("tuner_gain").toInt();
     int remote_gain_idx =  settings.value("remote_rtl_gain_idx").toInt();
 
@@ -64,21 +109,23 @@ MainWindow::MainWindow(QWidget *parent)
 
     int mix_offset = settings.value("mix_offset").toInt();
 
-    // usually 4 buffers per Fs but in some cases 5 due to multiple of 512
-    int bufsplit = 4;
+    bool sb = settings.value("small_buffers").toString() == "1" ? true : false;
 
-    if(double((int((2*Fs)/4))%512) > 0)
+    // usually 4/16 buffers per Fs but in some cases 5/20 due to multiple of 512
+    bufsplit = sb ? 32 : 4;
+
+    if(double((int((2*Fs)/bufsplit))%512) > 0)
     {
 
-        buflen = int((2*Fs)/5);
-        bufsplit = 5;
+        bufsplit = sb ? 20 : 5;
+        buflen = int((2*Fs)/bufsplit);
+
     }
     else
     {
 
-        buflen = int((2*Fs)/4);
+        buflen = int((2*Fs)/bufsplit);
     }
-
 
     if(gain > 0)
     {
@@ -93,6 +140,20 @@ MainWindow::MainWindow(QWidget *parent)
 
     QString zmq_address = settings.value("zmq_address").toString();
 
+    // bind publisher setup
+    pZmqPub = new ZmqPublisher();
+    pQueue = new AudioSampleBufferQueue();
+    audioPool().reserve(128);
+
+    pZmqPub->setBind(true);
+    pZmqPub->setAddress(zmq_address);
+    pZmqPub->setQueue(pQueue);
+
+
+    QThread * pworkerThreadZmq = new QThread();
+    pZmqPub->moveToThread(pworkerThreadZmq);
+
+
     dc = settings.value("correct_dc_bias").toString() == "1" ? true : false;
 
     int msize = settings.beginReadArray("main_vfos");
@@ -102,20 +163,28 @@ MainWindow::MainWindow(QWidget *parent)
 
         settings.setArrayIndex(i);
 
+        int taps =settings.value("halfband_taps").toInt();
+
+        if(taps == 0||(taps!=11&&taps!=23&&taps!=51))
+        {
+            taps = 11;
+        }
         vfo * pVFO = new vfo();
         int vfo_freq = settings.value("frequency").toInt();
+        if(!(vfo_freq>0))
+        {
+
+            QMessageBox msgBox;
+            msgBox.setText("Invalid frequency for main VFO "+QString::number(i+1));
+            msgBox.exec();
+            exit(1);
+
+        }
+
         int vfo_out_rate = settings.value("out_rate").toInt();
 
         QString output_connect = settings.value("zmq_address").toString();
         QString out_topic =  settings.value("zmq_topic").toString();
-
-        int compscale = settings.value("compress_scale").toInt();
-
-        if(compscale > 0)
-        {
-
-            pVFO->setScaleComp(compscale);
-        }
 
         if(output_connect != "" && out_topic != "")
         {
@@ -125,14 +194,22 @@ MainWindow::MainWindow(QWidget *parent)
 
         }
 
-
         pVFO->setFs(Fs);
         pVFO->setDecimationCount(Fs/vfo_out_rate == 1 ? 0 : int(log2(Fs/vfo_out_rate)));
+        pVFO->setHalfbandTaps(taps);
+        pVFO->setCenterFreq(vfo_freq);
         pVFO->setMixerFreq(center_frequency - vfo_freq);
         pVFO->setDemodUSB(false);
-        pVFO->setCompressonStyle(1);
         pVFO->init(buflen/2, false);
         pVFO->setVFOs(&VFOsub[i]);
+
+        QThread * pworkerThread = new QThread();
+        pVFO->moveToThread(pworkerThread);
+
+        workers.push_back(pworkerThread);
+
+        pworkerThread->start();
+
         VFOmain.push_back(pVFO);
 
     }
@@ -149,6 +226,17 @@ MainWindow::MainWindow(QWidget *parent)
 
         vfo * pVFO = new vfo();
         int vfo_freq = settings.value("frequency").toInt() + mix_offset;
+
+        if(vfo_freq<=mix_offset)
+        {
+
+            QMessageBox msgBox;
+            msgBox.setText("Invalid frequency for VFO "+QString::number(i+1));
+            msgBox.exec();
+            exit(1);
+
+        }
+
         int data_rate = settings.value("data_rate").toInt();
         int out_rate = settings.value("out_rate").toInt();
 
@@ -163,11 +251,27 @@ MainWindow::MainWindow(QWidget *parent)
             case 1200:
                 out_rate = 24000;
                 break;
+            case 8400:
+                out_rate = 48000;
+                break;
+            case 10500:
+                out_rate = 48000;
+                break;
+            case 21000:
+                out_rate = 96000;
+                break;
             default:
                 out_rate = 48000;
                 break;
 
             }
+        }
+
+        int taps =settings.value("halfband_taps").toInt();
+
+        if(taps == 0||(taps!=11&&taps!=23&&taps!=51))
+        {
+            taps = 11;
         }
 
         int filterbw=settings.value("filter_bandwidth").toInt();
@@ -191,7 +295,9 @@ MainWindow::MainWindow(QWidget *parent)
         }
 
         pVFO->setZmqTopic(settings.value("topic").toString());
+        pVFO->setZmqTopicLSB(settings.value("topic_lsb").toString());
         pVFO->setZmqAddress(zmq_address);
+        pVFO->setQueue(pQueue);
 
         int lateDecimate = 0;
         if((main_vfo_out_rate/48000)==5)
@@ -216,61 +322,70 @@ MainWindow::MainWindow(QWidget *parent)
         }
 
         pVFO->setFilterBandwidth(filterbw);
-        pVFO->setGain((float)settings.value("gain").toFloat()/100);
+        pVFO->setHalfbandTaps(taps);
+        pVFO->setGain(pRadio->adjustGain(settings.value("gain").toInt()));
+
         pVFO->setMixerFreq((center_frequency-main_vfo_freq) - vfo_freq);
+        pVFO->setCenterFreq(vfo_freq);
         pVFO->setFs(main_vfo_out_rate);
-        pVFO->setCompressonStyle(1);
-        pVFO->init(main_vfo_out_rate/bufsplit,true, lateDecimate);
+        pVFO->init(main_vfo_out_rate/bufsplit,lateDecimate);
 
-            VFOsub[main_idx].push_back(pVFO);
+        VFOsub[main_idx].push_back(pVFO);
 
-        connect(pVFO, SIGNAL(fftData(const std::vector<cpx_typef>&)), this, SLOT(fftHandlerSlot(const std::vector<cpx_typef>&)));
+        connect(pVFO, SIGNAL(fftData(const QSharedPointer<std::vector<cpx_typef>>)), this, SLOT(fftHandlerSlot(const QSharedPointer<std::vector<cpx_typef>>)),Qt::QueuedConnection);
         connect(this, SIGNAL(fftVFOSlot(QString)), pVFO, SLOT(fftVFOSlot(QString)));
+        connect(pVFO, SIGNAL(bufferReady()), pZmqPub, SLOT(bufferReady()),Qt::QueuedConnection);
+
+        QThread * pworkerThread = new QThread();
+        pVFO->moveToThread(pworkerThread);
+
+        workers.push_back(pworkerThread);
+        pworkerThread->start();
 
         vfo_str.push_back(settings.value("topic").toString());
-
-
     }
 
     settings.endArray();
-    radio = new sdrj(this);
 
-    radio->setVFOs(&VFOmain);
-    radio->setDCCorrection(dc);
+    pRadio->setVFOs(&VFOmain);
+    pRadio->setDCCorrection(dc);
+
+    pZmqPub->connect();
+    pworkerThreadZmq->start();
+
+    workers.push_back(pworkerThreadZmq);
 
     Fs2 = Fs;
-
     nFFT = 8192;
-
-    fftr = new FFTr(nFFT,false);
     fft = new FFT(nFFT, false);
+
+    pAvgMain = new MovingAverage(5);
+    pAvgVfo = new MovingAverage(25);
 
     out.resize(nFFT);
     in.resize(nFFT);
     inr.resize(nFFT);
     pwr.resize(nFFT);
-    smooth_pwr.resize(nFFT-10);
+    smooth_pwr.resize(nFFT);
 
+    pFileReader = new FileReader();
 
-    qRegisterMetaType< QVector<quint8> >("const QVector<cpx_type>&");
-    qRegisterMetaType< QVector<quint8> >("const std::vector<cpx_type>&");
-    qRegisterMetaType< QVector<quint8> >("const std::vector<cpx_typef>&");
+    connect(pRadio, SIGNAL(fftData(const QSharedPointer<std::vector<cpx_typef>>)), this, SLOT(fftHandlerSlot(const QSharedPointer<std::vector<cpx_typef>>)),Qt::UniqueConnection);
+    connect(pRadio, SIGNAL(audio_signal_out(const float *, int )),pRadio,SLOT(demodData(const float*,int)));
+    connect(pFileReader, SIGNAL(audio_signal_out(const float *, int )),pRadio,SLOT(demodData(const float*,int)));
+    connect(this, SIGNAL(fftVFOSlot(QString)), pRadio, SLOT(fftVFOSlot(QString)));
 
-    connect(radio, SIGNAL(fftData(const std::vector<cpx_typef>&)), this, SLOT(fftHandlerSlot(const std::vector<cpx_typef>&)),Qt::UniqueConnection);
-    connect(radio, SIGNAL(audio_signal_out(const float *, int )),radio,SLOT(demodData(const float*,int)));
-    connect(this, SIGNAL(fftVFOSlot(QString)), radio, SLOT(fftVFOSlot(QString)));
 
     ui->setupUi(this);
     ui->biasTee->setText("Enable BiasTee");
     ui->processFile->setVisible(false);
-
     ui->spinBox->setRange(center_frequency-100000,center_frequency+100000 );
     ui->spinBox->setValue(center_frequency);
     ui->spinBox->setSingleStep(200);
 
     MainWindow::makePlot();
 
-    QStringList devices = radio->deviceNames();
+    QStringList devices = pRadio->deviceNames();
     ui->comboSDRs->addItems(devices);
 
     if(remote_rtl != "")
@@ -292,33 +407,33 @@ MainWindow::MainWindow(QWidget *parent)
 
         if(auto_start_tuner_serial.length() > 0)
         {
-           int index = radio->indexBySerial(auto_start_tuner_serial.toStdString().c_str());
+            int index = pRadio->indexBySerial(auto_start_tuner_serial.toStdString().c_str());
 
-           switch(index){
+            switch(index){
 
-               case -1 :{
-                   QMessageBox msgBoxDev1;
-                   msgBoxDev1.setText("Auto start device serial number from ini file is null");
-                   msgBoxDev1.exec();
-                   break;
-               }
-               case -2 : {
-                   QMessageBox msgBoxDev2;
-                   msgBoxDev2.setText("No devices found for auto start by device serial");
-                   msgBoxDev2.exec();
-                   break;
-               }
-               case -3 : {
-                   QMessageBox msgBoxDev3;
-                   msgBoxDev3.setText("No matching devices found for auto start by device serial: " +auto_start_tuner_serial ) ;
-                   msgBoxDev3.exec();
-                   break;
-               }
+            case -1 :{
+                QMessageBox msgBoxDev1;
+                msgBoxDev1.setText("Auto start device serial number from ini file is null");
+                msgBoxDev1.exec();
+                break;
+            }
+            case -2 : {
+                QMessageBox msgBoxDev2;
+                msgBoxDev2.setText("No devices found for auto start by device serial");
+                msgBoxDev2.exec();
+                break;
+            }
+            case -3 : {
+                QMessageBox msgBoxDev3;
+                msgBoxDev3.setText("No matching devices found for auto start by device serial: " +auto_start_tuner_serial ) ;
+                msgBoxDev3.exec();
+                break;
+            }
 
-               default:
-                   auto_start_tuner_idx = index;
-                   break;
-               }
+            default:
+                auto_start_tuner_idx = index;
+                break;
+            }
 
         }
 
@@ -341,7 +456,7 @@ MainWindow::MainWindow(QWidget *parent)
 
         ui->startSDR->setEnabled(true);
         ui->stopSDR->setEnabled(false);
-        
+
         if(disableFFT == 1) {
             ui->radioFFT->setChecked(false);
         } else {
@@ -353,39 +468,47 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
-    if(radio)
+    if(pRadio)
     {
-        radio->StopAndCloseRtl();
+        pRadio->StopAndClose();
 
     }
     delete ui;
-
     delete fft;
-    delete fftr;
-    delete radio;
+    delete pRadio;
+    delete pFileReader;
+
+    delete pAvgMain;
+    delete pAvgVfo;
+    delete pQueue;
+
+    for(int a = 0; a < workers.length(); a++)
+    {
+
+        QThread* poThread = workers.at(a);
+        poThread->quit();
+        poThread->wait();
+        delete poThread;
+    }
 }
 
 void MainWindow::makePlot()
 {
 
-
     ui->spectrum->addGraph();
-
 
     ui->spectrum->xAxis->setLabel("X");
     ui->spectrum->yAxis->setLabel("Y");
 
-    spec_freq_vals.resize(nFFT-10);
+    spec_freq_vals.resize(nFFT);
 
-    double  hzperbin=Fs2/nFFT;
+    double  hzperbin=(double)Fs2/nFFT;
     for(int i=0;i<spec_freq_vals.size();i++)
     {
         spec_freq_vals[i]=((int)i)*hzperbin;
     }
 
-
     ui->spectrum->xAxis->setRange(0,Fs);
-
     ui->spectrum->graph()->setLineStyle(QCPGraph::lsLine);
     ui->spectrum->graph()->setPen(QPen(QPen(Qt::blue)));
     ui->spectrum->graph()->setBrush(QBrush(QColor(0, 0, 255, 20)));
@@ -403,24 +526,26 @@ void MainWindow::makePlot()
 
     ui->spectrum->xAxis->setNumberFormat("gb");
     ui->spectrum->xAxis->setLabel("Frequency");
-    ui->spectrum->yAxis->setRange(0,100);
+    ui->spectrum->yAxis->setRange(0,1.0);
     ui->spectrum->yAxis->setLabel("Power");
 
 }
 
-void MainWindow::fftHandlerSlot(const std::vector<cpx_typef> &data)
+void MainWindow::fftHandlerSlot(const QSharedPointer<std::vector<cpx_typef>> data)
 {
     double maxval = 0;
     double aveval = 0;
 
-    int lenth = (int)data.size();
+    float fgain = pRadio->getFFTGain();
+
+    int lenth = (int)data->size();
 
     for(int a = 0; a<nFFT; a++)
     {
 
         if(a < lenth)
         {
-            inr[a] = data[a] * hann_window[a];
+            inr[a] = data->at(a) * hann_window[a]*fgain;
         }
     }
 
@@ -438,7 +563,15 @@ void MainWindow::fftHandlerSlot(const std::vector<cpx_typef> &data)
         double val = 0;
         val =  sqrt(out[i].imag()*out[i].imag() + out[i].real()*out[i].real());
 
-        pwr[b]= pwr[b]*0.95+0.05*10*log10(fmax(100000.0*abs((1.0/nFFT)*val),1));
+        if(!usb)
+        {
+            pwr[b]= pwr[b]*0.95+0.05*10*log10(fmax(100000.0*abs((1.0/nFFT)*val),1));
+        }
+        else
+        {
+            pwr[b]= pwr[b]*0.8+0.2*10*log10(fmax(100000.0*abs((1.0/nFFT)*val),1));
+
+        }
 
         if(pwr[b]>maxval)
         {
@@ -447,12 +580,20 @@ void MainWindow::fftHandlerSlot(const std::vector<cpx_typef> &data)
         aveval+=pwr[b];
     }
 
+
+
     for(int i=0;i<smooth_pwr.size();i++)
     {
+        if(!usb)
+        {
+            smooth_pwr[i] = pAvgMain->Update(pwr[i]);
 
-        smooth_pwr[i] = (pwr[i+4] + pwr[i+3] + pwr[i+2] + pwr[i+1] + pwr[i])/5;
+        }else
+        {
+            smooth_pwr[i] = pAvgVfo->Update(pwr[i]);
+        }
+
     }
-
 
     aveval/=pwr.size();
     if((maxval-aveval)<10)
@@ -460,19 +601,13 @@ void MainWindow::fftHandlerSlot(const std::vector<cpx_typef> &data)
         maxval=aveval+10.0;
     }
 
-
-    if(!usb)
-    {
-
-        ui->spectrum->graph(0)->setData(spec_freq_vals,smooth_pwr);
-
-
-    }else
-    {
-
-        ui->spectrum->graph(0)->setData(spec_freq_vals.mid(0,(nFFT-10)/2),smooth_pwr.mid((nFFT-10)/2, (nFFT-10)/2));
+    if (spec_freq_vals.size() != smooth_pwr.size()) {
+        qDebug() << "Size mismatch:" << spec_freq_vals.size() << smooth_pwr.size();
     }
-    ui->spectrum->yAxis->setRange(aveval-2, ui->spectrum->yAxis->range().upper*0.5+0.5*(maxval+1));
+
+    ui->spectrum->graph(0)->setData(spec_freq_vals,smooth_pwr);
+
+    ui->spectrum->yAxis->setRange(aveval-10 < 0 ? 0 : aveval-10, ui->spectrum->yAxis->range().upper*0.5+0.5*(maxval+20));
 
     ui->spectrum->replot();
 }
@@ -482,7 +617,7 @@ void MainWindow::fftHandlerSlot(const std::vector<cpx_typef> &data)
 void MainWindow::on_stopSDR_clicked()
 {
 
-    radio->StopAndCloseRtl();
+    pRadio->StopAndClose();
 
     ui->startSDR->setEnabled(true);
     ui->stopSDR->setEnabled(false);
@@ -499,13 +634,14 @@ bool MainWindow::on_startSDR_clicked()
     if(remote)
     {
 
-        result = radio->start_tcp_rtl(ui->comboSDRs->currentText(),Fs, center_frequency, tuner_gain_idx );
+        result = pRadio->StartRemote(ui->comboSDRs->currentText(),Fs, center_frequency, tuner_gain_idx );
 
     }
 
-    else{
+    else
+    {
 
-        result = radio->OpenRtl(ui->comboSDRs->currentIndex());
+        result = pRadio->Open(ui->comboSDRs->currentIndex());
 
     }
     if(!result)
@@ -517,7 +653,7 @@ bool MainWindow::on_startSDR_clicked()
     }
     else if(!remote)
     {
-        radio->StartRtl(Fs,center_frequency, buflen, tuner_gain);
+        pRadio->Start(Fs,center_frequency, buflen, tuner_gain);
     }
 
     if(result)
@@ -533,10 +669,13 @@ bool MainWindow::on_startSDR_clicked()
 
 void MainWindow::on_processFile_clicked()
 {
-    //radio->process_file(Fs);
+
+    QString fileName = QFileDialog::getOpenFileName(this);
+
+    pFileReader->Start(fileName, Fs, (uint32_t)(2*Fs)/bufsplit);
 }
 
-void MainWindow::on_comboVFO_currentIndexChanged(const QString &arg1)
+void MainWindow::on_comboVFO_currentTextChanged(const QString &arg1)
 {
     emit fftVFOSlot(arg1);
     for(int i=0;i<pwr.size();i++)
@@ -549,30 +688,83 @@ void MainWindow::on_comboVFO_currentIndexChanged(const QString &arg1)
         inr[a] = 0;
     }
 
-    if(arg1.compare("Main")){
+    if(arg1.compare("Main") == 0)
+    {
+        double  hzperbin=(double)Fs2/nFFT;
 
-        usb = true;
-        ui->spectrum->xAxis->setTickLabels(false);
-        ui->spectrum->xAxis->setRange(0,Fs/2);
+        for(int i=0;i<spec_freq_vals.size();i++)
+        {
+            spec_freq_vals[i]=((int)i)*hzperbin;
+        }
+
+        QSharedPointer<QCPAxisTickerText> textTicker(new QCPAxisTickerText);
+        double start = (center_frequency-(Fs/2))/1000;
+        int step = (Fs/5)/1000;
+
+        for(int a = 1; a < 6; a++)
+        {
+            start+=step;
+            textTicker->addTick(1000*a*step, QString::number(start/1000));
+        }
+        ui->spectrum->xAxis->setTicker(textTicker);
+
+        ui->spectrum->xAxis->setTickLabels(true);
+        ui->spectrum->xAxis->setRange(0,Fs);
+
+        ui->spectrum->xAxis->setLabel("Frequency");
+
+        usb = false;
 
     }else
     {
-        usb = false;
-        ui->spectrum->xAxis->setTickLabels(true);
-        ui->spectrum->xAxis->setRange(0,Fs);
+        // find the right VFO
+        vfo * pVFO = getVFO(arg1);
+
+        if(pVFO != 0)
+        {
+
+            usb = true;
+
+            int bw = pVFO->getOutRate();
+
+            double  hzperbin=(double)bw/nFFT;
+
+            for(int i=0;i<spec_freq_vals.size();i++)
+            {
+                spec_freq_vals[i]=((int)i)*hzperbin;
+            }
+
+            ui->spectrum->xAxis->setRange(0,bw);
+            double center = (pVFO->getCenterFreq());
+
+
+            QSharedPointer<QCPAxisTickerText> textTicker(new QCPAxisTickerText);
+
+            double start = (center-((bw)/2))/1000;
+            int step = (bw/6)/1000;
+
+            for(int a = 1; a <= 5; a++)
+            {
+                start+=step;
+                textTicker->addTick(a*1000*step, QString::number(start/1000, 'f', 4));
+            }
+
+            ui->spectrum->xAxis->setTicker(textTicker);
+
+            ui->spectrum->xAxis->setTickLabels(true);
+
+            ui->spectrum->xAxis->setLabel("VFO Bandwidth- " +  QString::number(bw) + " Hz - Full IQ spectrum is shown");
+
+        }
     }
-
-
 }
-
-
 
 void MainWindow::on_spinBox_valueChanged(int arg1)
 {
-    if(radio != 0 && arg1 != center_frequency)
+    if(pRadio != 0 && arg1 != center_frequency)
     {
 
-        int result =  radio->setCenterFreq(arg1);
+        int result =  pRadio->setCenterFreq(arg1);
 
         if(result == 0)
         {
@@ -581,8 +773,6 @@ void MainWindow::on_spinBox_valueChanged(int arg1)
     }
 
 }
-
-
 
 void MainWindow::on_biasTee_clicked()
 {
@@ -596,12 +786,12 @@ void MainWindow::on_biasTee_clicked()
         {
 
             ui->biasTee->setText("Enable BiasTee");
-            radio->biasTee(0, ui->comboSDRs->currentIndex());
+            pRadio->biasTee(0, ui->comboSDRs->currentIndex());
             biasT = false;
         }else
         {
             ui->biasTee->setText("Disable BiasTee");
-            radio->biasTee(1, ui->comboSDRs->currentIndex());
+            pRadio->biasTee(1, ui->comboSDRs->currentIndex());
             biasT = true;
 
         }
@@ -616,11 +806,34 @@ void MainWindow::on_biasTee_clicked()
 void MainWindow::on_radioFFT_clicked(bool checked)
 {
     if(checked){
-        connect(radio, SIGNAL(fftData(const std::vector<cpx_typef>&)), this, SLOT(fftHandlerSlot(const std::vector<cpx_typef>&)),Qt::UniqueConnection);
+        connect(pRadio, SIGNAL(fftData(const QSharedPointer<std::vector<cpx_typef>>)), this, SLOT(fftHandlerSlot(const QSharedPointer<std::vector<cpx_typef>>)),Qt::UniqueConnection);
 
     }else{
-        disconnect(radio, SIGNAL(fftData(const std::vector<cpx_typef>&)), this, SLOT(fftHandlerSlot(const std::vector<cpx_typef>&)));
+        disconnect(pRadio, SIGNAL(fftData(const QSharedPointer<std::vector<cpx_typef>>)), this, SLOT(fftHandlerSlot(const QSharedPointer<std::vector<cpx_typef>>)));
 
     }
 
 }
+
+vfo* MainWindow::getVFO(QString name)
+{
+    int size = sizeof(VFOsub);
+    for(int a = 0; a < size; a++)
+    {
+
+        for(int b = 0; b < VFOsub[a].length(); b++)
+        {
+
+            vfo * pVFO = VFOsub[a].at(b);
+
+            if(pVFO->getZmqTopic().compare(name) == 0)
+            {
+                return pVFO;
+            }
+        }
+    }
+
+    return 0;
+
+}
+

@@ -1,35 +1,36 @@
+#include <cstring>
 #include "vfo.h"
 #include "gnuradio/firfilter.h"
 #include "iostream"
+#include "TxMessage.h"
+#include "audiobufferpool.h"
+#include "audiobufferpoolaccess.h"
 
-ZmqPublisher vfo::bind_publisher;
-vfo::vfo(QObject *parent) : QObject(parent)
+vfo::vfo(QObject *parent) : QObject(parent), bufferPool(10)
 {
 
     gain = 0.01;
+    halfBandTaps = 11;
 
     avecpt = 0;
-    val = 0.000001;
-    one = 1.0;
 
     demodUSB = true;
-    filterAudio = false;
+    demodLSB = false;
     filterbw = 0;
-    offsetbw = 0;
     mpVFOs = 0;
 
     laststageDecimate = false;
+    samplesOut=0;
     discard = 0;
     emitFFT = false;
-    scalecomp = 1;
     fir_decI = NULL;
     fir_decQ = NULL;
-    osc_mix = NULL;
-    osc_bfo = NULL;
+    pOsc_mix = NULL;
     philbert = NULL;
     fir_usb = NULL;
-}
+    fir_lsb = NULL;
 
+}
 
 vfo::~vfo()
 {
@@ -42,11 +43,10 @@ vfo::~vfo()
 
     if(fir_decI) delete fir_decI;
     if(fir_decQ) delete fir_decQ;
-    if(osc_mix) delete osc_mix;
-    if(osc_bfo) delete osc_bfo;
+    if(pOsc_mix) delete pOsc_mix;
     if(philbert) delete philbert;
     if(fir_usb) delete fir_usb;
-
+    if(fir_lsb) delete fir_lsb;
 
     if(mpVFOs != 0 && mpVFOs->length() > 0 )
     {
@@ -54,19 +54,24 @@ vfo::~vfo()
         {
             delete mpVFOs->at(a);
         }
-}
+    }
 
 }
-void vfo::init(int samplesPerBuffer, bool bind, int lateDecimate)
+
+void vfo::init(int samplesPerBuffer, int lateDecimate)
 {
 
     firfilter filt;
-    osc_mix = new Oscillator(Fs, mixer_freq);
 
     int targetRate = Fs/(pow(2,decimateCount));
-    int samplesOut = samplesPerBuffer/(pow(2,decimateCount));
+    samplesOut = samplesPerBuffer/(pow(2,decimateCount));
 
-    // samples per buffer should be multiple of 12000 otherwise we need to do one last decimation 4/5
+    if(zmqTopicLSB.length()>0)
+    {
+        demodLSB = true;
+    }
+
+    // check for late decimate 4/5 or 5/6
     if(demodUSB && lateDecimate >0)
     {
         laststageDecimate = true;
@@ -77,48 +82,49 @@ void vfo::init(int samplesPerBuffer, bool bind, int lateDecimate)
 
         int firlen = 0;
 
-
-
         QVector<float> coeff = filt.low_pass(2,
                                              targetRate*lateDecimate,
-                                            targetRate/2,
+                                             targetRate/2,
                                              (double)targetRate/(lateDecimate-1),
-                                            firfilter::win_type::WIN_HAMMING,
-                                            0);
+                                             firfilter::win_type::WIN_HAMMING,
+                                             0);
         firlen = coeff.length();
         fir_decI = new FIR(firlen, 0);
         fir_decQ = new FIR(firlen, 0);
 
         for(int i=0;i<firlen;i++)
         {
-                  fir_decI->FIRSetPoint(i,coeff[i]);
-                  fir_decQ->FIRSetPoint(i,coeff[i]);
+            fir_decI->FIRSetPoint(i,coeff[i]);
+            fir_decQ->FIRSetPoint(i,coeff[i]);
         }
-
-
-
 
     }
     outputRate = targetRate;
-    osc_bfo = new Oscillator(outputRate, offsetbw);
-
+    pOsc_mix = new Oscillator(Fs, mixer_freq);
 
     if(filterbw >0)
     {
 
-
         QVector<float> coeff = filt.low_pass(2,
-                                        targetRate,
-                                        filterbw,
-                                        (double)filterbw/4,
-                                        firfilter::win_type::WIN_HAMMING,
-                                        0);
+                                             targetRate,
+                                             filterbw,
+                                             (double)filterbw/4,
+                                             firfilter::win_type::WIN_HAMMING,
+                                             0);
 
 
         fir_usb=new FIR(coeff.length(), 0);
+        if(demodLSB)
+        {
+            fir_lsb=new FIR(coeff.length(), 0);
+        }
         for(int i=0;i<coeff.length();i++)
         {
-         fir_usb->FIRSetPoint(i,coeff[i]);
+            fir_usb->FIRSetPoint(i,coeff[i]);
+            if(demodLSB)
+            {
+                fir_lsb->FIRSetPoint(i,coeff[i]);
+            }
 
         }
     }
@@ -126,27 +132,15 @@ void vfo::init(int samplesPerBuffer, bool bind, int lateDecimate)
 
     for(int a = 0; a<decimateCount; a++ )
     {
-
-        int taps = 11;
-
-         hdecimator[a] = new HalfBandDecimator(taps, Fs/(pow(2,a)));
+        hdecimator[a] = new HalfBandDecimator(halfBandTaps, Fs/(pow(2,a)));
     }
 
-
-    delayT.setLength((125-1)/2);
-    philbert = new FIRHilbert(125, samplesOut);
-
-
-
-    transmit_usb.resize(samplesOut);
-
-    if(cstyle ==1)
+    if(demodUSB)
     {
 
-        transmit_iq.resize(samplesOut);
-    }else
-    {
-        transmit_iq.resize(samplesOut*2);
+      delayT.setLength((81-1)/2);
+      philbert = new FIRHilbert(81);
+
     }
 
     decimate[0].resize(samplesPerBuffer);
@@ -156,50 +150,55 @@ void vfo::init(int samplesPerBuffer, bool bind, int lateDecimate)
         decimate[a].resize(decimate[a-1].size()/2);
 
     }
-
-    if(!vfo::bind_publisher.connected && bind)
-    {
-        vfo::bind_publisher.setAddress(zmqAddress);
-        vfo::bind_publisher.setBind(bind);
-        vfo::bind_publisher.connect();
-    }
-    else if(!bind)
-    {
-
-        connect_publisher.setBind(false);
-        connect_publisher.setAddress(zmqAddress);
-        connect_publisher.connect();
-    }
-
-     zmqBind = bind;
-
 }
+
 void vfo::setZmqAddress(QString address)
 {
 
     zmqAddress = address;
 
 }
+
 void vfo::setZmqTopic(QString top)
 {
 
     zmqTopic = top;
 
 }
+
+void vfo::setZmqTopicLSB(QString top)
+{
+
+    zmqTopicLSB = top;
+
+}
+
 void vfo::setFs(int samplerate)
 {
     Fs = samplerate;
 
 }
+
 void vfo::setDecimationCount(int count)
 {
-   decimateCount = count;
+    decimateCount = count;
+}
+
+void vfo::setHalfbandTaps(int taps)
+{
+    halfBandTaps = taps;
 }
 
 void vfo::setMixerFreq(double freq)
 {
 
     mixer_freq = freq;
+
+}
+void vfo::setCenterFreq(double freq)
+{
+
+    center_freq = freq;
 
 }
 
@@ -209,20 +208,23 @@ double vfo::getMixerFreq()
     return mixer_freq;
 
 }
+double vfo::getCenterFreq()
+{
+
+    return center_freq;
+
+}
+
 int vfo::getOutRate()
 {
 
     return Fs/(pow(2, decimateCount));
 
 }
-void vfo::setOffsetBandwidth(double bw)
-{
-   offsetbw = bw;
 
-}
 void vfo::setFilterBandwidth(double bw)
 {
-   filterbw = bw;
+    filterbw = bw;
 
 }
 
@@ -232,136 +234,169 @@ void vfo::setGain(float g)
     gain = g;
 }
 
-void vfo::process(const std::vector<cpx_typef> & samples)
+
+void vfo::process(ComplexSampleBuffer * pBuff)
 {
-    for(long unsigned int i=0;i<samples.size();++i)
-    {
 
-        //mix
-        cpx_typef curr = osc_mix->_vector*samples.at(i);
-        osc_mix->tick();
+    cpx_typef curr;
 
-        decimate[0][i]=curr;
+    size_t sampleSize = pBuff->samples.size();
+
+    for (size_t i = 0; i < sampleSize; ++i) {
+        decimate[0][i] = pOsc_mix->_vector * pBuff->samples[i];
+        pOsc_mix->tick();
     }
+
+    // release SampleBuffer
+    pBuff->remaining.fetch_sub(1, std::memory_order_acq_rel);
+
+
     // decimate
     for(int i = 0; i<decimateCount; i++)
     {
-
-          hdecimator[i]->decimate(decimate[i], decimate[i+1]);
+        hdecimator[i]->decimate(decimate[i], decimate[i+1]);
     }
-
-    if(mpVFOs != 0 && mpVFOs->length() > 0 )
-    {
-
-
-        for(int a = 0; a<mpVFOs->length(); a++)
-        {
-           vfo * pvfo = mpVFOs->at(a);
-
-           pvfo->process(decimate[decimateCount]);
-
-        }
-
-
-    }
-    else
-    {
-        if(demodUSB)
-        {
-
-            if(!laststageDecimate)
-            {
-                  usb_demod();
-            }
-            else
-            {
-                  usb_decimdemod();
-            }
-        }
-        else
-        {
-             compress();
-        }
-
-        transmitData();
-    }
-
 
     if(emitFFT)
     {
-        emit fftData( decimate[decimateCount]);
+        sharedSamples = QSharedPointer<std::vector<cpx_typef>>::create(decimate[decimateCount]);
+        emit fftData(sharedSamples);
     }
 
+    // pass data to threads
+    if(mpVFOs != NULL && mpVFOs->length() > 0  )
+    {
 
+        ComplexSampleBuffer* buf =
+            bufferPool.acquireBuffer(mpVFOs->length());
+
+        buf->samples.resize(decimate[decimateCount].size());
+        std::memcpy(buf->samples.data(),
+                    decimate[decimateCount].data(),
+                    decimate[decimateCount].size() * sizeof(cpx_typef));
+
+
+        if(mpVFOs != 0 && mpVFOs->length() > 0 )
+        {
+
+            for(int a = 0; a<mpVFOs->length(); a++)
+            {
+                vfo * pvfo = mpVFOs->at(a);
+
+                pvfo->process(buf);
+
+            }
+        }
+
+    }
+
+    if(mpVFOs == 0 || mpVFOs->length() == 0 )
+    {
+        if(demodUSB)
+        {
+            if(!laststageDecimate)
+            {
+                ssbDemod();
+            }
+            else
+            {
+                finalDecim();
+            }
+        }
+    }
 }
 
 
-
-void vfo::usb_demod()
+void vfo::ssbDemod()
 {
 
-    for (long unsigned int i = 0; i < decimate[decimateCount].size(); i++) {
+    QSharedPointer<AudioSampleBuffer> bufUsb = NULL;
+    QSharedPointer<AudioSampleBuffer> bufLsb = NULL;
+    bufUsb = audioPool().acquire();
+
+    bufUsb->data.resize(samplesOut);
+    bufUsb->len = bufUsb->data.size()*sizeof(short);
+    bufUsb->topic = zmqTopic;
+    bufUsb->sampleRate = outputRate;
+
+    if(demodLSB)
+    {
+        bufLsb = audioPool().acquire();
+
+        bufLsb->data.resize(samplesOut);
+        bufLsb->len = bufLsb->data.size()*sizeof(short);
+        bufLsb->topic = zmqTopicLSB;
+        bufLsb->sampleRate = outputRate;
+
+    }
+
+    float usb = 0.0;
+    float lsb = 0.0;
+
+    float delayImag = 0.0;
+    float hilbertReal = 0.0;
+
+    for (long unsigned int i = 0; i < samplesOut; i++) {
 
         cpx_typef curr = decimate[decimateCount][i];
 
-        if(offsetbw > 1){
-
-            curr = osc_bfo->_vector*curr;
-            osc_bfo->tick();
-
-        }
-
-        float usb = 0;
-
+        delayImag = delayT.update_dont_touch(curr.imag());
+        hilbertReal = philbert->FIRUpdateAndProcess(curr.real());
         if(filterbw > 0)
         {
-            usb = fir_usb->FIRUpdateAndProcess(delayT.update_dont_touch(curr.real()) - philbert->FIRUpdateAndProcess(curr.imag()));
+            usb =  fir_usb->FIRUpdateAndProcess(delayImag + hilbertReal);
 
-        }
-
-        else
+        }else
         {
-            usb = delayT.update_dont_touch(curr.real()) - philbert->FIRUpdateAndProcess(curr.imag());
-
+            usb =  delayImag + hilbertReal;
         }
 
-        transmit_usb[i] = usb * gain * 32768.0;
+        bufUsb->data[i] = gain * 32768.0 * usb;
 
+        if(demodLSB)
+        {
+            if(filterbw > 0)
+            {
+                lsb =  fir_lsb->FIRUpdateAndProcess(delayImag - hilbertReal);
+            }
+            else
+            {
+                lsb = delayImag - hilbertReal;
+            }
+
+            bufLsb->data[i] = gain * 32768.0 * lsb;
+
+        }
+    }
+
+    pAudioBufferQueue->push(bufUsb);
+    emit bufferReady();
+
+    if(demodLSB)
+    {
+        pAudioBufferQueue->push(bufLsb);
+        emit bufferReady();
     }
 
 }
-
-void vfo::usb_decimdemod()
+void vfo::finalDecim()
 {
-
-
     int mark = 0;
     int check = 0;
-    for (long unsigned int i = 0; i < decimate[decimateCount].size(); i++) {
+
+    // filter and decimate
+    for (long unsigned int i = 0; i < decimate[decimateCount].size(); i++)
+    {
 
         cpx_typef curr = decimate[decimateCount][i];
-
-        // low pass
-
-        if(offsetbw > 1){
-              curr = osc_bfo->_vector*curr;
-               osc_bfo->tick();
-         }
 
         if(check== 0)
         {
 
-            curr = cpx_typef(fir_decI->FIRUpdateAndProcess(curr.real()), fir_decQ->FIRUpdateAndProcess(curr.imag()));
+            curr = cpx_typef(fir_decQ->FIRUpdateAndProcess(curr.real()),fir_decI->FIRUpdateAndProcess(curr.imag()));
 
-            float usb = delayT.update_dont_touch(curr.real()) - philbert->FIRUpdateAndProcess(curr.imag());
+            decimate[decimateCount][mark] = curr;
 
-            if(filterbw > 0)
-            {
-                usb = fir_usb->FIRUpdateAndProcess(usb);
-
-            }
-
-            transmit_usb[mark] = usb * gain * 32768.0;
             mark++;
             check++;
 
@@ -369,102 +404,22 @@ void vfo::usb_decimdemod()
 
         else if( check == discard)
         {
-            fir_decI->FIRUpdate(curr.real());
-            fir_decQ->FIRUpdate(curr.imag());
+            fir_decI->FIRUpdate(curr.imag());
+            fir_decQ->FIRUpdate(curr.real());
 
             check = 0;
         }
         else
         {
-            fir_decI->FIRUpdate(curr.real());
-            fir_decQ->FIRUpdate(curr.imag());
+            fir_decI->FIRUpdate(curr.imag());
+            fir_decQ->FIRUpdate(curr.real());
             check++;
         }
-
-
     }
 
+    ssbDemod();
 }
 
-void vfo::compress()
-{
-
-
-    if(cstyle==1)
-    {
-
-        // drop 4 LSB och each arm and combine into 1 byte
-        for (long unsigned int i = 0; i < decimate[decimateCount].size(); i++) {
-
-            cpx_typef curr = decimate[decimateCount][i];
-
-            signed char real = (curr.real()/scalecomp)*128;
-            signed char imag = (curr.imag()/scalecomp)*128;
-
-            transmit_iq[i] = ( (real & 0xF0) | (imag & 0xF0) >> 4 );
-
-        }
-
-    }
-
-    else
-    {
-
-        for (long unsigned int i = 0; i < decimate[decimateCount].size(); i++) {
-
-            cpx_typef curr = decimate[decimateCount][i];
-
-            transmit_iq[2*i] =  curr.real()*128;
-            transmit_iq[2*i+1]= curr.imag()*128;
-
-        }
-
-    }
-
-}
-
-void vfo::transmitData(){
-
-    if(demodUSB)
-    {
-        if(zmqBind)
-        {
-          vfo::bind_publisher.publish((unsigned char*)transmit_usb.data(), transmit_usb.size()*sizeof(short), zmqTopic, outputRate);
-        }
-        else
-        {
-            connect_publisher.publish((unsigned char*)transmit_usb.data(), transmit_usb.size()*sizeof(short), zmqTopic, outputRate);
-        }
-    }
-    else if(zmqTopic.length()>0)
-    {
-
-        if(zmqBind)
-        {
-           bind_publisher.publish((unsigned char*)transmit_iq.data(), transmit_iq.size()*sizeof(char), zmqTopic, outputRate);
-        }
-        else
-        {
-            connect_publisher.publish((unsigned char*)transmit_iq.data(), transmit_iq.size()*sizeof(char), zmqTopic,outputRate);
-
-        }
-    }
-
-}
-
-void vfo::setCompressonStyle(int st)
-{
-
-    cstyle = st;
-
-}
-
-void vfo::setScaleComp(int scale)
-{
-
-    scalecomp = scale;
-
-}
 void vfo::setDemodUSB(bool usb)
 {
 
@@ -475,18 +430,15 @@ bool vfo::getDemodUSB()
 {
     return demodUSB;
 }
-void vfo::setFilter(bool filter, int bw )
-{
 
-     filterAudio = filter;
-     filterbw = bw;
+QString vfo::getZmqTopic()
+{
+    return zmqTopic;
 }
 
 void vfo::setVFOs(QVector<vfo*> * vfos)
 {
-
     mpVFOs = vfos;
-
 }
 
 void vfo::fftVFOSlot(QString topic)
@@ -495,9 +447,9 @@ void vfo::fftVFOSlot(QString topic)
     if(topic.compare(zmqTopic) ==0)
     {
 
-       emitFFT = true;
+        emitFFT = true;
 
-       FFTcount = 0;
+        FFTcount = 0;
     }
     else
     {
@@ -506,4 +458,9 @@ void vfo::fftVFOSlot(QString topic)
         FFTcount = 0;
     }
 
+}
+
+void vfo::setQueue(AudioSampleBufferQueue* queue)
+{
+    pAudioBufferQueue = queue;
 }

@@ -7,7 +7,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -19,7 +19,7 @@ jobs:
         uses: msys2/setup-msys2@v2
         with:
           msystem: MINGW64
-          update: true
+          update: false
           install: git mingw-w64-x86_64-toolchain autoconf libtool mingw-w64-x86_64-cpputest mingw-w64-x86_64-qt5 mingw-w64-x86_64-cmake mingw-w64-x86_64-zeromq mingw-w64-x86_64-libusb zip p7zip unzip
       # build for windows
       - name: Windows-CI-Build
@@ -40,26 +40,26 @@ jobs:
         if: ${{ matrix.os == 'windows-latest' }}
         uses: actions/upload-artifact@v4
         with:
-          name: sdrrece_windows_windows
-          retention-days: 1
+          name: sdrreceiver_windows
+          retention-days: 90
           path: |
-            SDRReceiver/SDRReceiver/release/*.zip
+            SDRReceiver/release/*.zip
       # upload linux artifacts    
       - name: Upload linux binary artifacts
         if: ${{ matrix.os == 'ubuntu-latest' }}
         uses: actions/upload-artifact@v4
         with:
           name: sdrreceiver_linux
-          retention-days: 1
+          retention-days: 90
           path: |
-            sdrreceiver/bin/*.tar.gz
+            ./SDRReceiver/bin/*.tar.gz
   release:
     needs: build
     runs-on: ubuntu-latest
     steps:
       # download all artifacts for this workflow
       - name: Download all workflow artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
       # Create a release
       - name: Create a release
         uses: "marvinpinto/action-automatic-releases@latest"
