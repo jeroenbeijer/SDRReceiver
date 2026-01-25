@@ -29,7 +29,25 @@
 #fail on first error
 set -e
 
-pacman -S --needed --noconfirm git mingw-w64-x86_64-toolchain autoconf libtool mingw-w64-x86_64-cpputest mingw-w64-x86_64-qt5 mingw-w64-x86_64-cmake mingw-w64-x86_64-libvorbis zip p7zip unzip mingw-w64-x86_64-zeromq mingw-w64-x86_64-libusb
+# -------------------------------------------------
+# Clean previous build artifacts
+# -------------------------------------------------
+
+echo "Cleaning previous build artifacts..."
+
+# qmake / make outputs
+rm -f Makefile .qmake.stash
+rm -rf release
+
+# Object & moc leftovers (defensive)
+find . -type f \( -name "*.o" -o -name "*.obj" -o -name "moc_*.cpp" \) -delete
+
+# Old packages
+rm -f SDRReceiver_*_win_*.zip
+
+echo "Clean done."
+
+pacman -S --needed --noconfirm git mingw-w64-x86_64-toolchain mingw-w64-x86_64-qt5 mingw-w64-x86_64-cmake zip p7zip unzip mingw-w64-x86_64-rtl-sdr mingw-w64-x86_64-zeromq mingw-w64-x86_64-libusb
 
 #get script path
 SCRIPT=$(realpath $0)
@@ -101,4 +119,6 @@ ci-windows-build.sh
 EOT
 #compress
 cd ..
-zip -r ${PACKAGE_NAME}_${PACKAGE_VERSION%_*}-1_win_$(uname -m).zip SDRReceiver
+																			  
+
+zip -r ${PACKAGE_NAME}_${PACKAGE_VERSION%_*}-1_win_qt5_$(uname -m).zip SDRReceiver
