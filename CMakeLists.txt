@@ -137,7 +137,7 @@ else()
     endif()
 endif()
 
-install(TARGETS ${PROJECT_NAME} DESTINATION /opt/sdrreceiver/bin)
+install(TARGETS ${PROJECT_NAME} DESTINATION bin)
 
 # -------------------------------------------------
 # DSP optimizations (Release builds only)

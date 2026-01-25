@@ -34,7 +34,7 @@ if [[ ! $(sudo echo 0) ]]; then exit; fi
 sudo apt-get update
 
 #install dependancies and build tools
-sudo apt-get install qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools build-essential cmake libzmq3-dev  librtlsdr-dev libusb-dev -y
+sudo apt-get install qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools build-essential cmake libzmq3-dev librtlsdr-dev libusb-dev -y
 
 #get script path
 SCRIPT=$(realpath $0)
@@ -69,7 +69,7 @@ Package: ${PACKAGE_NAME}
 Source: ${PACKAGE_SOURCE}
 Section: base
 Priority: extra
-Depends: qtmultimedia5-dev, libvorbis-dev, libogg-dev, libqt5multimedia5-plugins, libqcustomplot-dev, libqt5svg5-dev, libzmq3-dev, libusb-dev, librtlsdr-dev
+Depends: qtmultimedia5-dev, libqt5multimedia5-plugins, libqt5svg5-dev, libzmq3-dev, libusb-dev, librtlsdr-dev
 Provides: ${PACKAGE_NAME}
 Maintainer: ${MAINTAINER}
 Version: ${PACKAGE_VERSION%_*}
@@ -124,5 +124,5 @@ ci-linux-build.sh
 EOT
 #compress
 
-tar -czvf ${PACKAGE_NAME}_${PACKAGE_VERSION%_*}-1_linux_$(uname -m).tar.gz SDRReceiver
+tar -czvf ${PACKAGE_NAME}_${PACKAGE_VERSION%_*}-1_linux_qt5_$(uname -m).tar.gz SDRReceiver
 echo "done"
