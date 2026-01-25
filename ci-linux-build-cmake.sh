@@ -139,6 +139,6 @@ Build date: $(date -u)
 Built with Qt 6 and CMake.
 EOF
 
-tar -czvf ${PACKAGE_NAME}_${PACKAGE_VERSION}_linux_$(uname -m).tar.gz SDRReceiver
+tar -czvf ${PACKAGE_NAME}_${PACKAGE_VERSION%_*}-1_linux_qt6_$(uname -m).tar.gz SDRReceiver
 
 echo "done"
