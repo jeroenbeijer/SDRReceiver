@@ -91,8 +91,8 @@ CONFIG(release, debug|release) {
 
     # ---- Portable x86_64 (Windows + public Linux) ----
     contains(QMAKE_HOST.arch, x86_64) {
-        QMAKE_CXXFLAGS_RELEASE += -march=x86-64
-        QMAKE_CXXFLAGS_RELEASE += -mno-avx2 -mno-fma
+      #  QMAKE_CXXFLAGS_RELEASE += -march=x86-64
+      #  QMAKE_CXXFLAGS_RELEASE += -mno-avx2 -mno-fma
     }
 
     # ---- ARM 64-bit (Raspberry Pi 4) ----
@@ -131,6 +131,7 @@ CONFIG(sdrplay) {
 
 DISTFILES += \
     CMakeLists.txt
+
 
 
 
